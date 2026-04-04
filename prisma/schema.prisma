@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// NextJS and Prisma with sqlite
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Screen {
+  id        String   @id @default(cuid())
+  name      String
+  widgets   Widget[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Widget {
+  id        String   @id @default(cuid())
+  screenId  String
+  screen    Screen   @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  type      String   // 'clock', 'weather', 'calendar', 'photos', 'quotes', 'tasks', 'text'
+  x         Int
+  y         Int
+  w         Int
+  h         Int
+  config    String?  // JSON stringified configuration for the widget (e.g. { location: 'New York' })
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  listName  String   // e.g., 'Erel list', 'Asaph List'
+  title     String
+  completed Boolean  @default(false)
+  dueDate   String?  // optional date string like "JAN 9"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Config {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
