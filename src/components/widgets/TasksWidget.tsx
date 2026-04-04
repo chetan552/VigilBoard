@@ -84,8 +84,7 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
         </div>
       )}
 
-      <div className="flex-grow min-h-0 overflow-hidden">
-        <div className="flex flex-col gap-2 h-full overflow-y-auto pr-1" style={{ touchAction: 'pan-y' }}>
+      <div className="flex flex-col gap-2 flex-grow min-h-0 overflow-y-auto pr-1" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           {tasks.map((task: Task) => (
             <div
               key={task.id}
@@ -129,7 +128,6 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
