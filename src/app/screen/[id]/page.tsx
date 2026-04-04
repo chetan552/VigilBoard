@@ -40,7 +40,7 @@ export default async function LiveScreen(props: Props) {
       ) : (
         <div
           className="w-full h-full grid gap-4"
-          style={{ gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gridTemplateRows: "repeat(8, minmax(0, 1fr))" }}
+          style={{ gridTemplateColumns: "repeat(24, minmax(0, 1fr))", gridTemplateRows: "repeat(12, minmax(0, 1fr))" }}
         >
           {screen.widgets.map((widget) => (
             <div

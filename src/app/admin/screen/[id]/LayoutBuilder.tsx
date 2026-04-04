@@ -24,18 +24,21 @@ type Screen = {
   widgets: Widget[];
 };
 
+const GRID_COLS = 24;
+const GRID_ROWS = 12;
+
 const WIDGET_TYPES = [
-  { id: 'clock', label: 'Clock', w: 4, h: 3 },
-  { id: 'weather', label: 'Weather', w: 4, h: 4 },
-  { id: 'calendar', label: 'Calendar', w: 5, h: 6 },
-  { id: 'photos', label: 'Photos', w: 5, h: 5 },
-  { id: 'quotes', label: 'Quotes', w: 6, h: 2 },
-  { id: 'tasks', label: 'Task List', w: 3, h: 6 },
-  { id: 'text', label: 'Free Text', w: 4, h: 2 },
-  { id: 'countdown', label: 'Countdown', w: 4, h: 3 },
-  { id: 'news', label: 'News Feed', w: 4, h: 4 },
-  { id: 'worldclock', label: 'World Clock', w: 4, h: 4 },
-  { id: 'datafetch', label: 'Data Fetch', w: 3, h: 3 },
+  { id: 'clock', label: 'Clock', w: 6, h: 4 },
+  { id: 'weather', label: 'Weather', w: 6, h: 6 },
+  { id: 'calendar', label: 'Calendar', w: 8, h: 9 },
+  { id: 'photos', label: 'Photos', w: 8, h: 8 },
+  { id: 'quotes', label: 'Quotes', w: 10, h: 3 },
+  { id: 'tasks', label: 'Task List', w: 5, h: 9 },
+  { id: 'text', label: 'Free Text', w: 6, h: 3 },
+  { id: 'countdown', label: 'Countdown', w: 6, h: 4 },
+  { id: 'news', label: 'News Feed', w: 6, h: 6 },
+  { id: 'worldclock', label: 'World Clock', w: 6, h: 6 },
+  { id: 'datafetch', label: 'Data Fetch', w: 4, h: 4 },
 ];
 
 type GoogleCalendarList = { id: string; title: string };
@@ -217,11 +220,11 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
   const getGridUnits = () => {
     if (!canvasRef.current) return { colUnit: 1, rowUnit: 1 };
     const rect = canvasRef.current.getBoundingClientRect();
-    const innerW = rect.width - 48;  // p-6 = 24px each side
-    const innerH = rect.height - 48;
+    const innerW = rect.width - 16;  // p-2 = 8px each side
+    const innerH = rect.height - 16;
     return {
-      colUnit: (innerW + 12) / 12,   // gap-3 = 12px
-      rowUnit: (innerH + 12) / 8,
+      colUnit: (innerW + 4) / GRID_COLS,   // gap-1 = 4px
+      rowUnit: (innerH + 4) / GRID_ROWS,
       rect,
     };
   };
@@ -233,22 +236,22 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
       const { colUnit, rowUnit, rect } = getGridUnits() as ReturnType<typeof getGridUnits> & { rect: DOMRect };
 
       if (mode === 'resize') {
-        const newW = Math.max(1, Math.min(12 - startX, Math.round(startW + (e.clientX - startClientX) / colUnit)));
-        const newH = Math.max(1, Math.min(8 - startY, Math.round(startH + (e.clientY - startClientY) / rowUnit)));
+        const newW = Math.max(1, Math.min(GRID_COLS - startX, Math.round(startW + (e.clientX - startClientX) / colUnit)));
+        const newH = Math.max(1, Math.min(GRID_ROWS - startY, Math.round(startH + (e.clientY - startClientY) / rowUnit)));
         setWidgets(prev => prev.map(w => w.id === widgetId ? { ...w, w: newW, h: newH } : w));
       } else if (mode === 'drag' && rect) {
         // Convert pointer position to grid cell
-        const offsetX = e.clientX - rect.left - 24; // subtract p-6 padding
-        const offsetY = e.clientY - rect.top - 24;
+        const offsetX = e.clientX - rect.left - 8; // subtract p-2 padding
+        const offsetY = e.clientY - rect.top - 8;
         const { colUnit: cu, rowUnit: ru } = getGridUnits();
-        const newX = Math.max(0, Math.min(11, Math.floor(offsetX / cu)));
-        const newY = Math.max(0, Math.min(7, Math.floor(offsetY / ru)));
+        const newX = Math.max(0, Math.min(GRID_COLS - 1, Math.floor(offsetX / cu)));
+        const newY = Math.max(0, Math.min(GRID_ROWS - 1, Math.floor(offsetY / ru)));
         setWidgets(prev => prev.map(w => {
           if (w.id !== widgetId) return w;
           return {
             ...w,
-            x: Math.min(newX, 12 - w.w),
-            y: Math.min(newY, 8 - w.h),
+            x: Math.min(newX, GRID_COLS - w.w),
+            y: Math.min(newY, GRID_ROWS - w.h),
           };
         }));
       }
@@ -347,8 +350,8 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
 
   // Generate background grid cells
   const gridCells = [];
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 12; x++) {
+  for (let y = 0; y < GRID_ROWS; y++) {
+    for (let x = 0; x < GRID_COLS; x++) {
       gridCells.push(
         <div 
           key={`cell-${x}-${y}`}
@@ -839,21 +842,21 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
       <div className="flex-grow p-5 bg-[var(--bg-color)]">
         <div ref={canvasRef} className="relative w-full h-full bg-[var(--surface-color)] rounded-xl border-2 border-dashed border-[var(--border-color)] overflow-hidden">
           {/* Base Grid for Snapping visually — must match widget overlay gap/padding exactly */}
-          <div className="absolute inset-0 grid grid-cols-12 grid-rows-8 gap-3 p-6">
+          <div className="absolute inset-0 grid gap-1 p-2" style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${GRID_ROWS}, minmax(0, 1fr))` }}>
             {gridCells}
           </div>
 
           {/* Actual Grid Overlay for Widgets */}
-          <div className="absolute inset-0 grid grid-cols-12 grid-rows-8 gap-3 p-6 pointer-events-none">
+          <div className="absolute inset-0 grid gap-1 p-2 pointer-events-none" style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${GRID_ROWS}, minmax(0, 1fr))` }}>
             {widgets.map(w => (
               <div
                 key={w.id}
                 onPointerDown={(e) => handleDragPointerDown(e, w)}
                 style={{
-                  gridColumnStart: Math.min(w.x, 11) + 1,
-                  gridColumnEnd: `span ${Math.min(w.w, 12 - Math.min(w.x, 11))}`,
-                  gridRowStart: Math.min(w.y, 7) + 1,
-                  gridRowEnd: `span ${Math.min(w.h, 8 - Math.min(w.y, 7))}`,
+                  gridColumnStart: Math.min(w.x, GRID_COLS - 1) + 1,
+                  gridColumnEnd: `span ${Math.min(w.w, GRID_COLS - Math.min(w.x, GRID_COLS - 1))}`,
+                  gridRowStart: Math.min(w.y, GRID_ROWS - 1) + 1,
+                  gridRowEnd: `span ${Math.min(w.h, GRID_ROWS - Math.min(w.y, GRID_ROWS - 1))}`,
                   touchAction: 'none',
                 }}
                 className="card border-2 border-[var(--accent-teal)] rounded-xl pointer-events-auto cursor-move relative shadow-lg group overflow-hidden hover:shadow-[0_0_20px_rgba(0,212,170,0.2)] transition-all duration-200"
