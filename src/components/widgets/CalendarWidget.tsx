@@ -32,6 +32,9 @@ export function CalendarWidget({ widget }: { widget: Widget }) {
     ? JSON.parse(widget.config || "{}")
     : (widget.config || {});
   const calendarId = config.calendarId || "primary";
+  const eventSize: "sm" | "md" | "lg" = config.eventSize || "sm";
+  const pillText = eventSize === "lg" ? "text-xs" : eventSize === "md" ? "text-[11px]" : "text-[9px]";
+  const agendaTitle = eventSize === "lg" ? "text-base" : eventSize === "md" ? "text-sm" : "text-xs";
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -105,11 +108,11 @@ export function CalendarWidget({ widget }: { widget: Widget }) {
               className="flex items-center gap-1 px-1 py-0.5 bg-[var(--accent-teal)]/15 rounded overflow-hidden"
             >
               <div className="w-1 h-1 rounded-full bg-[var(--accent-teal)] shrink-0" />
-              <span className="text-[9px] font-medium text-[var(--accent-teal)] truncate leading-tight">{e.title}</span>
+              <span className={`${pillText} font-medium text-[var(--accent-teal)] truncate leading-tight`}>{e.title}</span>
             </div>
           ))}
           {dayEvents.length > 2 && (
-            <div className="text-[9px] text-[var(--accent-teal)]/70 px-1 font-medium">+{dayEvents.length - 2} more</div>
+            <div className={`${pillText} text-[var(--accent-teal)]/70 px-1 font-medium`}>+{dayEvents.length - 2} more</div>
           )}
         </div>
       </div>
@@ -203,7 +206,7 @@ export function CalendarWidget({ widget }: { widget: Widget }) {
                     <div key={event.id} className="flex gap-3 items-start">
                       <div className="w-1 min-h-[36px] rounded-full bg-[var(--accent-teal)] mt-0.5 shrink-0" />
                       <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-sm leading-snug">{event.title}</span>
+                        <span className={`font-semibold ${agendaTitle} leading-snug`}>{event.title}</span>
                         <div className="flex items-center gap-1 text-xs text-[var(--accent-teal)] font-medium mt-1">
                           <Clock size={11} /> {event.time}
                         </div>
@@ -247,7 +250,7 @@ export function CalendarWidget({ widget }: { widget: Widget }) {
                   >
                     <div className="w-1 min-h-[36px] rounded-full bg-[var(--accent-teal)] mt-0.5 shrink-0" />
                     <div className="flex flex-col min-w-0">
-                      <span className="font-semibold text-sm leading-tight truncate">{event.title}</span>
+                      <span className={`font-semibold ${agendaTitle} leading-tight truncate`}>{event.title}</span>
                       <div className="flex items-center gap-1 text-xs text-[var(--accent-teal)] font-medium mt-1">
                         <Clock size={11} /> {event.time}
                         <span className="text-[var(--text-secondary)] ml-1">

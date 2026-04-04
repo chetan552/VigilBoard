@@ -518,7 +518,27 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
-              {editingWidget.type === 'calendar' && <CalendarPicker widget={editingWidget} updateWidget={updateWidget} />}
+              {editingWidget.type === 'calendar' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const currentSize = cfg.eventSize || 'sm';
+                return (
+                  <>
+                    <CalendarPicker widget={editingWidget} updateWidget={updateWidget} />
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Event Text Size</label>
+                      <div className="flex gap-2">
+                        {([['sm', 'S'], ['md', 'M'], ['lg', 'L']] as const).map(([size, lbl]) => (
+                          <button key={size} type="button"
+                            onClick={() => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, eventSize: size }) })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${currentSize === size ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               {editingWidget.type === 'quotes' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
