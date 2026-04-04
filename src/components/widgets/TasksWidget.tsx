@@ -84,8 +84,8 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
         </div>
       )}
 
-      <div className="flex-grow overflow-hidden">
-        <div className="flex flex-col gap-2 h-full overflow-y-auto pr-1">
+      <div className="flex-grow min-h-0 overflow-hidden">
+        <div className="flex flex-col gap-2 h-full overflow-y-auto pr-1" style={{ touchAction: 'pan-y' }}>
           {tasks.map((task: Task) => (
             <div
               key={task.id}
