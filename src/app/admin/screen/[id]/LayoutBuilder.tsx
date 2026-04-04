@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, Save, Layers, Settings as SettingsIcon, X as CloseIcon, Check } from "lucide-react";
 import { saveWidgets } from "./actions";
 import { PhotoPicker } from "@/components/PhotoPicker";
+import { WidgetPreviewRenderer } from "@/components/widgets/WidgetPreviewRenderer";
+import type { DisplayPrefs } from "@/lib/prefs";
 
 type Widget = {
   id: string;
@@ -190,7 +192,7 @@ function CalendarPicker({ widget, updateWidget }: {
   );
 }
 
-export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph", "Eden", "Ashira"] }: { initialScreen: Screen; taskListNames?: string[] }) {
+export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph", "Eden", "Ashira"], prefs }: { initialScreen: Screen; taskListNames?: string[]; prefs?: DisplayPrefs }) {
   const [widgets, setWidgets] = useState<Widget[]>(initialScreen.widgets || []);
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
@@ -842,15 +844,15 @@ export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph",
                   gridRowEnd: `span ${Math.min(w.h, 8 - Math.min(w.y, 7))}`,
                   touchAction: 'none',
                 }}
-                className="@container bg-[var(--surface-hover)] border-2 border-[var(--accent-teal)] rounded-xl pointer-events-auto cursor-move relative shadow-lg flex flex-col group overflow-hidden hover:shadow-[0_0_20px_rgba(0,212,170,0.2)] transition-all duration-200"
+                className="card border-2 border-[var(--accent-teal)] rounded-xl pointer-events-auto cursor-move relative shadow-lg group overflow-hidden hover:shadow-[0_0_20px_rgba(0,212,170,0.2)] transition-all duration-200"
               >
-                {/* Header: type on left, action buttons on right */}
-                <div className="flex items-center justify-between px-1.5 py-1 bg-[var(--surface-color)] border-b border-[var(--border-color)] shrink-0 min-w-0">
-                  <span className="text-[10px] font-semibold capitalize text-[var(--text-secondary)] truncate min-w-0 mr-1">{w.type}</span>
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                {/* Hover overlay: type label + action buttons */}
+                <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm rounded-t-xl pointer-events-none group-hover:pointer-events-auto">
+                  <span className="text-[10px] font-semibold capitalize text-white/80 truncate min-w-0 mr-1">{w.type}</span>
+                  <div className="flex items-center gap-0.5">
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditingWidgetId(w.id); }}
-                      className="p-1 rounded-md bg-[var(--accent-teal)]/10 hover:bg-[var(--accent-teal)] text-[var(--accent-teal)] hover:text-black transition-colors"
+                      className="p-1 rounded-md bg-white/10 hover:bg-[var(--accent-teal)] text-white hover:text-black transition-colors"
                       title="Configure"
                       aria-label={`Configure ${w.type} widget`}
                     >
@@ -858,7 +860,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph",
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); removeWidget(w.id); }}
-                      className="p-1 rounded-md bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors"
+                      className="p-1 rounded-md bg-white/10 hover:bg-red-500 text-white transition-colors"
                       title="Delete"
                       aria-label={`Delete ${w.type} widget`}
                     >
@@ -866,20 +868,9 @@ export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph",
                     </button>
                   </div>
                 </div>
-                {/* Body — font scales with container width via cqw */}
-                <div className="flex-1 flex flex-col items-center justify-center gap-1 p-1 min-w-0 overflow-hidden">
-                  <span
-                    className="font-bold capitalize text-[var(--text-primary)] opacity-40 group-hover:opacity-90 transition-opacity text-center leading-tight"
-                    style={{ fontSize: 'clamp(8px, 3cqw, 14px)' }}
-                  >
-                    {w.type}
-                  </span>
-                  <span
-                    className="text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ fontSize: 'clamp(7px, 2.5cqw, 11px)' }}
-                  >
-                    {w.w} × {w.h}
-                  </span>
+                {/* Live widget preview */}
+                <div className="flex-1 min-h-0 overflow-hidden pointer-events-none select-none">
+                  <WidgetPreviewRenderer widget={w} prefs={prefs} />
                 </div>
                 {/* Resize handle — bottom-right corner */}
                 <div
