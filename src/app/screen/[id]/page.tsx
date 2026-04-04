@@ -51,7 +51,7 @@ export default async function LiveScreen(props: Props) {
                 gridRowStart: widget.y + 1,
                 gridRowEnd: `span ${widget.h}`,
               }}
-              className="card overflow-hidden shadow-xl animate-fade-in hover:transform-none hover:shadow-xl"
+              className="card overflow-clip shadow-xl animate-fade-in hover:transform-none hover:shadow-xl [touch-action:pan-y]"
             >
               <WidgetRenderer widget={widget} prefs={prefs} />
             </div>

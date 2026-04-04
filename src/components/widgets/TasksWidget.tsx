@@ -52,7 +52,7 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full p-4 animate-fade-in">
+    <div className="flex flex-col h-full w-full p-4 animate-fade-in [touch-action:pan-y]">
       {showHeader && (
         <div className="flex items-center gap-3 mb-4 shrink-0">
           <div className="w-8 h-8 glass bg-gradient-to-br from-green-500/20 to-transparent rounded-xl flex items-center justify-center">
