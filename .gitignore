@@ -45,3 +45,4 @@ next-env.d.ts
 # Local AI assistant context files
 CLAUDE.md
 ImplementationPlan.md
+.claude/settings.json
