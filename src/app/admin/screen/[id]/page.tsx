@@ -6,7 +6,7 @@ import { getPrefs } from "@/lib/prefs";
 
 type Props = { params: Promise<{ id: string }> };
 
-const DEFAULT_LIST_NAMES = ["Erel", "Asaph", "Eden", "Ashira"];
+const DEFAULT_LIST_NAMES: string[] = [];
 
 export default async function ScreenEditor(props: Props) {
   const params = await props.params;

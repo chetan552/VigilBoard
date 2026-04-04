@@ -193,7 +193,7 @@ function CalendarPicker({ widget, updateWidget }: {
   );
 }
 
-export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph", "Eden", "Ashira"], prefs }: { initialScreen: Screen; taskListNames?: string[]; prefs?: DisplayPrefs }) {
+export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { initialScreen: Screen; taskListNames?: string[]; prefs?: DisplayPrefs }) {
   const [widgets, setWidgets] = useState<Widget[]>(initialScreen.widgets || []);
   const [isSaving, setIsSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
@@ -401,12 +401,13 @@ export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph",
                 return (
                   <>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Child Name (List Name)</label>
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Task List</label>
                       <select
                         className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3 text-left"
-                        value={cfg.listName || 'Erel'}
+                        value={cfg.listName || ''}
                         onChange={(e) => update({ listName: e.target.value })}
                       >
+                        <option value="" disabled>— Select a list —</option>
                         {taskListNames.map((name) => (
                           <option key={name} value={name}>{name}</option>
                         ))}

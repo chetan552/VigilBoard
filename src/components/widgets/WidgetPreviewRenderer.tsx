@@ -36,7 +36,7 @@ function TasksPlaceholder({ widget }: { widget: Widget }) {
         <div className="w-7 h-7 glass bg-gradient-to-br from-green-500/20 to-transparent rounded-lg flex items-center justify-center">
           <CheckSquare size={14} className="text-green-400" />
         </div>
-        <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">{listName}&apos;s Tasks</span>
+        <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">{listName}</span>
       </div>
       <div className="flex flex-col gap-1.5 flex-1">
         {[...Array(4)].map((_, i) => (

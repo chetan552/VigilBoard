@@ -27,8 +27,8 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
     ? JSON.parse(widget.config)
     : (widget.config || {});
 
-  const listName = config.listName || "Erel";
-  const title = config.title || `${listName}'s Tasks`;
+  const listName = config.listName || "";
+  const title = config.title || listName;
   const showHeader: boolean = config.showHeader !== false;
   const showProgress: boolean = config.showProgress !== false;
 

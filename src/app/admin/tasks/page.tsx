@@ -129,6 +129,7 @@ export default async function TasksManager() {
             <div className="flex flex-col gap-1.5 min-w-[150px]">
               <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Assign To</label>
               <select name="listName" required className="input">
+                <option value="" disabled>— Select a list —</option>
                 {lists.map((l) => <option key={l.name} value={l.name}>{l.name}</option>)}
               </select>
             </div>

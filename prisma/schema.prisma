@@ -32,7 +32,7 @@ model Widget {
 
 model Task {
   id        String   @id @default(cuid())
-  listName  String   // e.g., 'Erel list', 'Asaph List'
+  listName  String   // e.g., 'John list', 'Doe List'
   title     String
   completed Boolean  @default(false)
   dueDate   String?  // optional date string like "JAN 9"
