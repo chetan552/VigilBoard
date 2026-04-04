@@ -98,11 +98,11 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
               <form action={toggleTask.bind(null, task.id, task.completed)} className="shrink-0 mt-0.5">
                 <button
                   type="submit"
-                  className={`transition-colors ${task.completed ? 'text-green-400' : 'text-[var(--text-secondary)] hover:text-green-400'}`}
+                  className={`p-1 -m-1 transition-colors ${task.completed ? 'text-green-400' : 'text-[var(--text-secondary)] hover:text-green-400'}`}
                   title={task.completed ? "Mark incomplete" : "Mark complete"}
                   aria-label={task.completed ? `Mark "${task.title}" incomplete` : `Mark "${task.title}" complete`}
                 >
-                  {task.completed ? <CheckSquare size={20} /> : <Square size={20} />}
+                  {task.completed ? <CheckSquare size={24} /> : <Square size={24} />}
                 </button>
               </form>
               <div className="flex-grow min-w-0">

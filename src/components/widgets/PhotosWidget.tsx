@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Widget = {
   id: string;
@@ -41,8 +41,28 @@ export function PhotosWidget({ widget }: { widget: Widget }) {
     return () => clearInterval(timer);
   }, [photoUrls.length, intervalMs]);
 
+  const swipeStartX = useRef<number | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    swipeStartX.current = e.clientX;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (swipeStartX.current === null) return;
+    const dx = e.clientX - swipeStartX.current;
+    swipeStartX.current = null;
+    if (Math.abs(dx) > 40) {
+      setCurrentIndex(c => (c + (dx < 0 ? 1 : -1) + photoUrls.length) % photoUrls.length);
+    }
+  };
+
   return (
-    <div className="w-full h-full relative bg-black animate-fade-in overflow-hidden">
+    <div
+      className="w-full h-full relative bg-black animate-fade-in overflow-hidden touch-pan-y"
+      onPointerDown={photoUrls.length > 1 ? handlePointerDown : undefined}
+      onPointerUp={photoUrls.length > 1 ? handlePointerUp : undefined}
+    >
       {photoUrls.map((url, i) => (
         <div
           key={url}
@@ -54,13 +74,16 @@ export function PhotosWidget({ widget }: { widget: Widget }) {
         />
       ))}
       {photoUrls.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1">
           {photoUrls.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentIndex ? 'bg-white scale-125' : 'bg-white/40'}`}
-            />
+              aria-label={`Go to photo ${i + 1}`}
+              className={`h-6 px-1 flex items-center justify-center transition-all`}
+            >
+              <span className={`block rounded-full transition-all ${i === currentIndex ? 'w-3 h-3 bg-white' : 'w-1.5 h-1.5 bg-white/40'}`} />
+            </button>
           ))}
         </div>
       )}

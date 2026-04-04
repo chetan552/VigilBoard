@@ -121,8 +121,11 @@ export function NewsWidget({ widget }: { widget: Widget }) {
             <button
               key={i}
               onClick={() => setIndex(i)}
-              className={`h-1 rounded-full transition-all ${i === index % 10 ? 'w-4 bg-orange-400' : 'w-1.5 bg-[var(--border-color)]'}`}
-            />
+              aria-label={`Go to headline ${i + 1}`}
+              className="h-6 px-0.5 flex items-center justify-center"
+            >
+              <span className={`block rounded-full transition-all ${i === index % 10 ? 'w-4 h-1.5 bg-orange-400' : 'w-1.5 h-1 bg-[var(--border-color)]'}`} />
+            </button>
           ))}
         </div>
       )}
