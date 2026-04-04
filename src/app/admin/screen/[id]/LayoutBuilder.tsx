@@ -366,8 +366,9 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
       {/* Settings Modal */}
       {editingWidget && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="glass-strong border border-[var(--border-color)] rounded-3xl w-full max-w-lg p-8 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
+          <div className="glass-strong border border-[var(--border-color)] rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Sticky header */}
+            <div className="flex justify-between items-center px-8 pt-8 pb-4 shrink-0">
               <h3 className="text-2xl font-bold flex items-center gap-2">
                 <SettingsIcon size={24} className="text-[var(--accent-teal)]" />
                 Configure {editingWidget.type}
@@ -377,7 +378,8 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
               </button>
             </div>
             
-            <div className="flex flex-col gap-6 text-[var(--text-primary)]">
+            {/* Scrollable body */}
+            <div className="flex flex-col gap-6 text-[var(--text-primary)] overflow-y-auto px-8 pb-4 flex-1 min-h-0">
               {/* Type-Specific Fields */}
               {editingWidget.type === 'weather' && (
                 <div className="flex flex-col gap-2">
@@ -502,6 +504,24 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                         value={cfg.query || ''}
                         onChange={(e) => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, query: e.target.value }) })}
                       />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Image Fit</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {([
+                          ['cover',   'Cover',   'Fills widget, cropped'],
+                          ['contain', 'Contain', 'Full image, letterboxed'],
+                          ['fill',    'Stretch', 'Stretches to fill'],
+                          ['center',  'Center',  'Original size, centered'],
+                        ] as const).map(([val, label, desc]) => (
+                          <button key={val} type="button"
+                            onClick={() => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, fit: val }) })}
+                            className={`flex flex-col items-start px-3 py-2 rounded-xl border text-left transition-colors ${(cfg.fit || 'cover') === val ? 'bg-[var(--accent-teal)]/10 border-[var(--accent-teal)] text-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            <span className="text-sm font-semibold">{label}</span>
+                            <span className="text-[10px] opacity-70">{desc}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Slide Interval (seconds)</label>
@@ -738,37 +758,38 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                  </div>
               </div>
 
-              <div className="flex gap-3 mt-4">
-                {confirmDeleteId === editingWidget.id ? (
-                  <button
-                    onClick={() => {
-                      removeWidget(editingWidget.id);
-                      setEditingWidgetId(null);
-                      setConfirmDeleteId(null);
-                    }}
-                    className="flex-1 bg-red-500 text-white py-3 rounded-xl font-bold hover:bg-red-600 transition-all"
-                  >
-                    Confirm Delete
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setConfirmDeleteId(editingWidget.id);
-                      if (confirmTimeoutRef.current) clearTimeout(confirmTimeoutRef.current);
-                      confirmTimeoutRef.current = setTimeout(() => setConfirmDeleteId(null), 3000);
-                    }}
-                    className="flex-1 bg-red-500/10 text-red-500 py-3 rounded-xl font-bold hover:bg-red-500/20 transition-all border border-red-500/20"
-                  >
-                    Delete Widget
-                  </button>
-                )}
+            </div>
+            {/* Sticky footer */}
+            <div className="flex gap-3 px-8 py-5 border-t border-[var(--border-color)] shrink-0">
+              {confirmDeleteId === editingWidget.id ? (
                 <button
-                  onClick={() => { setEditingWidgetId(null); setConfirmDeleteId(null); }}
-                  className="flex-1 bg-[var(--accent-teal)] text-black py-3 rounded-xl font-bold hover:bg-teal-400 transition-all shadow-lg"
+                  onClick={() => {
+                    removeWidget(editingWidget.id);
+                    setEditingWidgetId(null);
+                    setConfirmDeleteId(null);
+                  }}
+                  className="flex-1 bg-red-500 text-white py-3 rounded-xl font-bold hover:bg-red-600 transition-all"
                 >
-                  Done
+                  Confirm Delete
                 </button>
-              </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setConfirmDeleteId(editingWidget.id);
+                    if (confirmTimeoutRef.current) clearTimeout(confirmTimeoutRef.current);
+                    confirmTimeoutRef.current = setTimeout(() => setConfirmDeleteId(null), 3000);
+                  }}
+                  className="flex-1 bg-red-500/10 text-red-500 py-3 rounded-xl font-bold hover:bg-red-500/20 transition-all border border-red-500/20"
+                >
+                  Delete Widget
+                </button>
+              )}
+              <button
+                onClick={() => { setEditingWidgetId(null); setConfirmDeleteId(null); }}
+                className="flex-1 bg-[var(--accent-teal)] text-black py-3 rounded-xl font-bold hover:bg-teal-400 transition-all shadow-lg"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

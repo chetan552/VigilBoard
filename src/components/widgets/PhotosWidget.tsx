@@ -29,6 +29,15 @@ export function PhotosWidget({ widget }: { widget: Widget }) {
   const photoUrls = localPhotos.length > 0 ? localPhotos : picsumPhotos;
   const intervalMs = (config.interval || 15) * 1000;
 
+  // fit: 'cover' | 'contain' | 'fill' | 'center'
+  const fitMap: Record<string, string> = {
+    cover:   'bg-cover bg-center',
+    contain: 'bg-contain bg-center bg-no-repeat',
+    fill:    'bg-[length:100%_100%] bg-no-repeat',
+    center:  'bg-auto bg-center bg-no-repeat',
+  };
+  const fitClass = fitMap[config.fit || 'cover'] ?? fitMap.cover;
+
   useEffect(() => {
     setCurrentIndex(0);
   }, [widget.config]);
@@ -66,7 +75,7 @@ export function PhotosWidget({ widget }: { widget: Widget }) {
       {photoUrls.map((url, i) => (
         <div
           key={url}
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+          className={`absolute inset-0 ${fitClass} transition-opacity duration-1000`}
           style={{
             backgroundImage: `url('${url}')`,
             opacity: i === currentIndex ? 1 : 0,
