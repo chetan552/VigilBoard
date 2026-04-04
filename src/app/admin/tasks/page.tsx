@@ -3,6 +3,7 @@ import { AdminTopbar } from "@/components/AdminTopbar";
 import { revalidatePath } from "next/cache";
 import { Plus, Trash2, CheckCircle, Circle, ListTodo } from "lucide-react";
 import { GoogleSyncButton } from "./GoogleSyncButton";
+import { InlineRenameForm } from "@/components/InlineRenameForm";
 
 type TaskListConfig = {
   name: string;
@@ -19,11 +20,7 @@ type Task = {
 };
 
 const DEFAULT_LISTS: TaskListConfig[] = [
-  { name: "Erel", googleTaskListId: null, lastSynced: null },
-  { name: "Asaph", googleTaskListId: null, lastSynced: null },
-  { name: "Eden", googleTaskListId: null, lastSynced: null },
-  { name: "Ashira", googleTaskListId: null, lastSynced: null },
-];
+ ];
 
 async function getListConfigs(): Promise<TaskListConfig[]> {
   const row = await prisma.config.findUnique({ where: { key: "task_lists" } });
@@ -92,6 +89,17 @@ async function deleteTask(id: string) {
   revalidatePath("/admin/tasks");
 }
 
+async function renameList(oldName: string, formData: FormData) {
+  "use server";
+  const newName = (formData.get("name") as string).trim();
+  if (!newName || newName === oldName) return;
+  const lists = await getListConfigs();
+  if (lists.find((l) => l.name.toLowerCase() === newName.toLowerCase())) return;
+  await saveListConfigs(lists.map((l) => l.name === oldName ? { ...l, name: newName } : l));
+  await prisma.task.updateMany({ where: { listName: oldName }, data: { listName: newName } });
+  revalidatePath("/admin/tasks");
+}
+
 async function clearCompleted(listName: string) {
   "use server";
   await prisma.task.deleteMany({ where: { listName, completed: true } });
@@ -144,10 +152,14 @@ export default async function TasksManager() {
                 {/* List header */}
                 <div className="p-4 border-b border-[var(--border-color)]">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <ListTodo size={16} className="text-[var(--accent-teal)]" />
-                      <h3 className="font-bold text-base">{list.name}</h3>
-                      <span className="text-xs text-[var(--text-tertiary)]">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <ListTodo size={16} className="text-[var(--accent-teal)] shrink-0" />
+                      <InlineRenameForm
+                        defaultValue={list.name}
+                        action={renameList.bind(null, list.name)}
+                        className="font-bold text-base bg-transparent border-b border-transparent hover:border-[var(--border-color)] focus:border-[var(--accent-teal)] outline-none truncate min-w-0 w-full transition-colors"
+                      />
+                      <span className="text-xs text-[var(--text-tertiary)] shrink-0">
                         {completedCount}/{listTasks.length}
                       </span>
                     </div>

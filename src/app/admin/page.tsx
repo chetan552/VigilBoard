@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { DeleteScreenButton } from "@/components/DeleteScreenButton";
 import { DuplicateScreenButton } from "@/components/DuplicateScreenButton";
 import { ImportScreenButton } from "@/components/ImportScreenButton";
+import { InlineRenameForm } from "@/components/InlineRenameForm";
 import React from "react";
 
 async function createScreen(formData: FormData) {
@@ -13,6 +14,14 @@ async function createScreen(formData: FormData) {
   const name = formData.get("name") as string;
   if (!name) return;
   await prisma.screen.create({ data: { name } });
+  revalidatePath("/admin");
+}
+
+async function renameScreen(id: string, formData: FormData) {
+  "use server";
+  const name = (formData.get("name") as string).trim();
+  if (!name) return;
+  await prisma.screen.update({ where: { id }, data: { name } });
   revalidatePath("/admin");
 }
 
@@ -108,8 +117,12 @@ export default async function AdminDashboard() {
             <div key={screen.id} className="card card-hover group hover:border-[var(--accent-teal)]">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-1">{screen.name}</h3>
+                  <div className="min-w-0 flex-1">
+                    <InlineRenameForm
+                      defaultValue={screen.name}
+                      action={renameScreen.bind(null, screen.id)}
+                      className="text-xl font-semibold bg-transparent border-b border-transparent hover:border-[var(--border-color)] focus:border-[var(--accent-teal)] outline-none w-full truncate transition-colors mb-1"
+                    />
                     <p className="text-sm text-[var(--text-secondary)]">
                       Created {new Date(screen.createdAt).toLocaleDateString('en-US', {
                         month: 'short',

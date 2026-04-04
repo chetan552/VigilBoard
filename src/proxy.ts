@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_COOKIE = "vb_session";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const session = request.cookies.get(SESSION_COOKIE)?.value;
   const expected = process.env.SESSION_SECRET;
 

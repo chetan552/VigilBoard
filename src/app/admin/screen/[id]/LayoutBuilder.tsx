@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, Save, Layers, Settings as SettingsIcon, X as CloseIcon, Check } from "lucide-react";
-import { saveWidgets } from "./actions";
+import { saveWidgets, renameScreen } from "./actions";
+import { InlineRenameForm } from "@/components/InlineRenameForm";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { WidgetPreviewRenderer } from "@/components/widgets/WidgetPreviewRenderer";
 import type { DisplayPrefs } from "@/lib/prefs";
@@ -752,7 +753,16 @@ export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph",
       {/* Sidebar Controls */}
       <div className="w-72 border-r border-[var(--border-color)] flex flex-col overflow-hidden shrink-0" style={{ background: '#1a1a1a' }}>
         {/* Sidebar header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-color)]">
+        <div className="flex flex-col gap-0 border-b border-[var(--border-color)]">
+          {/* Screen name — inline editable */}
+          <div className="px-4 pt-3 pb-1">
+            <InlineRenameForm
+              defaultValue={initialScreen.name}
+              action={renameScreen.bind(null, initialScreen.id)}
+              className="w-full text-sm font-semibold bg-transparent border-b border-transparent hover:border-[var(--border-color)] focus:border-[var(--accent-teal)] outline-none truncate transition-colors text-[var(--text-primary)]"
+            />
+          </div>
+        <div className="flex items-center justify-between px-4 py-2">
           <span className="text-xs font-semibold uppercase tracking-widest text-[var(--text-tertiary)] flex items-center gap-1.5">
             <Layers size={12} className="text-[var(--accent-teal)]" /> Elements
           </span>
@@ -770,6 +780,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = ["Erel", "Asaph",
               <Save size={11} /> {isSaving ? 'Saving…' : 'Save'}
             </button>
           </div>
+        </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">

@@ -12,6 +12,14 @@ type Widget = {
   config: string | null;
 };
 
+export async function renameScreen(screenId: string, formData: FormData) {
+  const name = (formData.get("name") as string)?.trim();
+  if (!name) return;
+  await prisma.screen.update({ where: { id: screenId }, data: { name } });
+  revalidatePath(`/admin/screen/${screenId}`);
+  revalidatePath("/admin");
+}
+
 export async function saveWidgets(screenId: string, widgets: Widget[]) {
   // Replace existing widgets with the new layout
   await prisma.widget.deleteMany({ where: { screenId } });
