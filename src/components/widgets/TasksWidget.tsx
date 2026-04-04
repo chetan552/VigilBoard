@@ -84,7 +84,7 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-2 flex-grow min-h-0 overflow-y-auto pr-1" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      <div className="flex flex-col gap-2 flex-grow min-h-0 overflow-y-auto pr-1 [touch-action:pan-y]">
           {tasks.map((task: Task) => (
             <div
               key={task.id}
