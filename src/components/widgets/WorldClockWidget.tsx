@@ -21,17 +21,17 @@ const DEFAULT_ZONES: TZEntry[] = [
   { label: "Tokyo", tz: "Asia/Tokyo" },
 ];
 
-function formatTime(tz: string, now: Date) {
+function formatTime(tz: string, now: Date, showSeconds: boolean, use24h: boolean) {
   try {
     return now.toLocaleTimeString("en-US", {
       timeZone: tz,
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
+      ...(showSeconds ? { second: "2-digit" } : {}),
+      hour12: !use24h,
     });
   } catch {
-    return "--:--:--";
+    return "--:--";
   }
 }
 
@@ -55,6 +55,9 @@ export function WorldClockWidget({ widget }: { widget: Widget }) {
   if (config.zones && Array.isArray(config.zones) && config.zones.length > 0) {
     zones = config.zones;
   }
+
+  const showSeconds: boolean = config.showSeconds !== false;
+  const use24h: boolean = config.use24h === true;
 
   const [now, setNow] = useState(() => new Date());
 
@@ -82,7 +85,7 @@ export function WorldClockWidget({ widget }: { widget: Widget }) {
               <p className="text-[10px] text-[var(--text-tertiary)]">{formatDay(z.tz, now)}</p>
             </div>
             <span className="text-base font-bold tabular-nums text-[var(--accent-teal)]">
-              {formatTime(z.tz, now)}
+              {formatTime(z.tz, now, showSeconds, use24h)}
             </span>
           </div>
         ))}

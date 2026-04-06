@@ -46,7 +46,15 @@ export function QuotesWidget({ widget }: { widget: Widget }) {
     if (parsed.length > 0) quotes = parsed;
   }
 
-  const quoteIndex = new Date().getDay() % quotes.length;
+  const rotationMode: "daily" | "random" = config.rotationMode || "daily";
+  let quoteIndex: number;
+  if (rotationMode === "random") {
+    // Stable per-day random: seed from date so it doesn't change on every render
+    const seed = new Date().getFullYear() * 1000 + new Date().getMonth() * 31 + new Date().getDate();
+    quoteIndex = seed % quotes.length;
+  } else {
+    quoteIndex = new Date().getDay() % quotes.length;
+  }
   const quote = quotes[quoteIndex];
 
   return (

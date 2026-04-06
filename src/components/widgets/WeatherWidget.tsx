@@ -29,13 +29,16 @@ type WeatherData = {
   };
 };
 
-export function WeatherWidget({ widget, tempUnit = "fahrenheit" }: { widget: Widget; tempUnit?: "fahrenheit" | "celsius" }) {
+export function WeatherWidget({ widget, tempUnit: globalTempUnit = "fahrenheit" }: { widget: Widget; tempUnit?: "fahrenheit" | "celsius" }) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const config = typeof widget.config === 'string' ? JSON.parse(widget.config || '{}') : (widget.config || {});
   const locationName = config.location || "Loveland, CO";
+  const tempUnit: "fahrenheit" | "celsius" = config.tempUnit || globalTempUnit;
+  const showForecast: boolean = config.showForecast !== false;
+  const showStats: boolean = config.showStats !== false;
 
   useEffect(() => {
     const BASE_INTERVAL = 300_000; // 5 min
@@ -140,47 +143,51 @@ export function WeatherWidget({ widget, tempUnit = "fahrenheit" }: { widget: Wid
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2 shrink-0">
-        <div className="flex flex-col items-center p-2 glass rounded-xl">
-          <Wind size={16} className="text-blue-400 mb-1" />
-          <div className="text-[10px] text-[var(--text-secondary)]">Wind</div>
-          <div className="text-sm font-bold">{windSpeed}<span className="text-[10px] font-normal ml-0.5">mph</span></div>
-        </div>
-        <div className="flex flex-col items-center p-2 glass rounded-xl">
-          <Droplets size={16} className="text-cyan-400 mb-1" />
-          <div className="text-[10px] text-[var(--text-secondary)]">Humidity</div>
-          <div className="text-sm font-bold">{humidity}<span className="text-[10px] font-normal ml-0.5">%</span></div>
-        </div>
-        <div className="flex flex-col items-center p-2 glass rounded-xl">
-          <Eye size={16} className="text-violet-400 mb-1" />
-          <div className="text-[10px] text-[var(--text-secondary)]">Visibility</div>
-          <div className="text-sm font-bold">
-            {visibilityMiles != null ? <>{visibilityMiles}<span className="text-[10px] font-normal ml-0.5">mi</span></> : '—'}
+      {showStats && (
+        <div className="grid grid-cols-3 gap-2 shrink-0">
+          <div className="flex flex-col items-center p-2 glass rounded-xl">
+            <Wind size={16} className="text-blue-400 mb-1" />
+            <div className="text-[10px] text-[var(--text-secondary)]">Wind</div>
+            <div className="text-sm font-bold">{windSpeed}<span className="text-[10px] font-normal ml-0.5">mph</span></div>
+          </div>
+          <div className="flex flex-col items-center p-2 glass rounded-xl">
+            <Droplets size={16} className="text-cyan-400 mb-1" />
+            <div className="text-[10px] text-[var(--text-secondary)]">Humidity</div>
+            <div className="text-sm font-bold">{humidity}<span className="text-[10px] font-normal ml-0.5">%</span></div>
+          </div>
+          <div className="flex flex-col items-center p-2 glass rounded-xl">
+            <Eye size={16} className="text-violet-400 mb-1" />
+            <div className="text-[10px] text-[var(--text-secondary)]">Visibility</div>
+            <div className="text-sm font-bold">
+              {visibilityMiles != null ? <>{visibilityMiles}<span className="text-[10px] font-normal ml-0.5">mi</span></> : '—'}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 5-day forecast — fills remaining space, never pushed out */}
-      <div className="border-t border-[var(--border-color)]/30 pt-3 shrink-0">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-2">5-Day Forecast</p>
-        <div className="grid grid-cols-5 gap-1.5">
-          {[0, 1, 2, 3, 4].map(i => {
-            const d = new Date(weather.daily.time[i]);
-            const max = Math.round(weather.daily.temperature_2m_max[i]);
-            const min = Math.round(weather.daily.temperature_2m_min[i]);
-            return (
-              <div key={i} className="flex flex-col items-center p-1.5 glass rounded-lg">
-                <span className="text-[10px] font-medium text-[var(--text-secondary)] mb-1">
-                  {d.toLocaleDateString('en-US', { weekday: 'short' })}
-                </span>
-                <div className="mb-1">{getIcon(weather.daily.weather_code[i], 18)}</div>
-                <span className="font-bold text-xs">{max}°{tempUnit === "celsius" ? "C" : "F"}</span>
-                <span className="text-[10px] text-[var(--text-secondary)]">{min}°</span>
-              </div>
-            );
-          })}
+      {showForecast && (
+        <div className="border-t border-[var(--border-color)]/30 pt-3 shrink-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-2">5-Day Forecast</p>
+          <div className="grid grid-cols-5 gap-1.5">
+            {[0, 1, 2, 3, 4].map(i => {
+              const d = new Date(weather.daily.time[i]);
+              const max = Math.round(weather.daily.temperature_2m_max[i]);
+              const min = Math.round(weather.daily.temperature_2m_min[i]);
+              return (
+                <div key={i} className="flex flex-col items-center p-1.5 glass rounded-lg">
+                  <span className="text-[10px] font-medium text-[var(--text-secondary)] mb-1">
+                    {d.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </span>
+                  <div className="mb-1">{getIcon(weather.daily.weather_code[i], 18)}</div>
+                  <span className="font-bold text-xs">{max}°{tempUnit === "celsius" ? "C" : "F"}</span>
+                  <span className="text-[10px] text-[var(--text-secondary)]">{min}°</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

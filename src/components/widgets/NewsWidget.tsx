@@ -16,7 +16,6 @@ type Widget = {
 type NewsItem = { title: string; link: string };
 
 const DEFAULT_FEED = "https://feeds.bbci.co.uk/news/rss.xml";
-const CYCLE_MS = 8000;
 
 async function fetchRssItems(feedUrl: string): Promise<NewsItem[]> {
   const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`;
@@ -36,6 +35,7 @@ export function NewsWidget({ widget }: { widget: Widget }) {
   const config = widget.config ? (() => { try { return JSON.parse(widget.config!); } catch { return {}; } })() : {};
   const feedUrl = config.feedUrl || DEFAULT_FEED;
   const label = config.label || "News";
+  const cycleMs = config.cycleSeconds ? parseInt(config.cycleSeconds) * 1000 : 8000;
 
   const [items, setItems] = useState<NewsItem[]>([]);
   const [index, setIndex] = useState(0);
@@ -71,7 +71,7 @@ export function NewsWidget({ widget }: { widget: Widget }) {
 
   useEffect(() => {
     if (items.length === 0) return;
-    const timer = setInterval(() => setIndex(i => (i + 1) % items.length), CYCLE_MS);
+    const timer = setInterval(() => setIndex(i => (i + 1) % items.length), cycleMs);
     return () => clearInterval(timer);
   }, [items.length]);
 

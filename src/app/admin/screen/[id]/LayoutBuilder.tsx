@@ -79,8 +79,34 @@ function WorldClockEditor({ widget, updateWidget }: {
     }
   };
 
+  const updateCfg = (patch: Record<string, unknown>) =>
+    updateWidget(widget.id, { config: JSON.stringify({ ...cfg, zones, ...patch }) });
+
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex gap-3">
+        <div className="flex flex-col gap-2 flex-1">
+          <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Time Format</label>
+          <div className="flex gap-2">
+            {([['12h', '12h'], ['24h', '24h']] as const).map(([val, lbl]) => (
+              <button key={val} type="button"
+                onClick={() => updateCfg({ use24h: val === '24h' })}
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.use24h ? '24h' : '12h') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                {lbl}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <label className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+        <input
+          type="checkbox"
+          checked={cfg.showSeconds !== false}
+          onChange={(e) => updateCfg({ showSeconds: e.target.checked })}
+          className="w-4 h-4 accent-[var(--accent-teal)]"
+        />
+        <span className="text-sm">Show seconds</span>
+      </label>
       <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Timezones</label>
       {zones.map((z, i) => {
         const tzInvalid = z.tz.trim() !== '' && !isValidTimezone(z.tz);
@@ -381,23 +407,62 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
             {/* Scrollable body */}
             <div className="flex flex-col gap-6 text-[var(--text-primary)] overflow-y-auto px-8 pb-4 flex-1 min-h-0">
               {/* Type-Specific Fields */}
-              {editingWidget.type === 'weather' && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Location (City, State/Country)</label>
-                  <input 
-                    className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3 text-left"
-                    placeholder="Loveland, CO"
-                    value={(() => {
-                      try { return JSON.parse(editingWidget.config || '{}').location || ''; } catch { return ''; }
-                    })()}
-                    onChange={(e) => {
-                      const current = JSON.parse(editingWidget.config || '{}');
-                      updateWidget(editingWidget.id, { config: JSON.stringify({ ...current, location: e.target.value }) });
-                    }}
-                  />
-                  <p className="text-xs text-[var(--text-tertiary)] italic">Enter a city name, e.g. "Austin, TX" or "London, UK".</p>
-                </div>
-              )}
+              {editingWidget.type === 'weather' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
+                return (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Location (City, State/Country)</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3 text-left"
+                        placeholder="Loveland, CO"
+                        value={cfg.location || ''}
+                        onChange={(e) => update({ location: e.target.value })}
+                      />
+                      <p className="text-xs text-[var(--text-tertiary)] italic">Enter a city name, e.g. "Austin, TX" or "London, UK".</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Temperature Unit</label>
+                      <div className="flex gap-2">
+                        {([['fahrenheit', '°F'], ['celsius', '°C']] as const).map(([val, lbl]) => (
+                          <button key={val} type="button"
+                            onClick={() => update({ tempUnit: val })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.tempUnit || '') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                        <button type="button"
+                          onClick={() => { const c = {...cfg}; delete c.tempUnit; updateWidget(editingWidget.id, { config: JSON.stringify(c) }); }}
+                          className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${!cfg.tempUnit ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                          Global
+                        </button>
+                      </div>
+                      <p className="text-xs text-[var(--text-tertiary)] italic">"Global" follows the Display Preferences setting.</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Show Sections</label>
+                      <div className="flex flex-col gap-2">
+                        {([
+                          ['showStats', 'Wind / Humidity / Visibility'],
+                          ['showForecast', '5-Day Forecast'],
+                        ] as const).map(([key, label]) => (
+                          <label key={key} className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={cfg[key] !== false}
+                              onChange={(e) => update({ [key]: e.target.checked })}
+                              className="w-4 h-4 accent-[var(--accent-teal)]"
+                            />
+                            <span className="text-sm">{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               {editingWidget.type === 'tasks' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
@@ -419,11 +484,47 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                       </select>
                     </div>
                     <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Custom Title</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3 text-left"
+                        placeholder="Defaults to list name"
+                        value={cfg.title || ''}
+                        onChange={(e) => update({ title: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Max Tasks</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={50}
+                          className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                          placeholder="20"
+                          value={cfg.maxTasks || ''}
+                          onChange={(e) => update({ maxTasks: parseInt(e.target.value) || 20 })}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Sort Order</label>
+                        <select
+                          className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                          value={cfg.sortOrder || 'newest'}
+                          onChange={(e) => update({ sortOrder: e.target.value })}
+                        >
+                          <option value="newest">Newest first</option>
+                          <option value="oldest">Oldest first</option>
+                          <option value="alpha">Alphabetical</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
                       <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Display</label>
                       <div className="flex flex-col gap-2">
                         {([
                           ['showHeader', 'Show header (icon + name)'],
                           ['showProgress', 'Show progress bar'],
+                          ['showCompleted', 'Show completed tasks'],
                         ] as const).map(([key, label]) => (
                           <label key={key} className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
                             <input
@@ -562,22 +663,41 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
 
               {editingWidget.type === 'quotes' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
                 return (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Custom Quotes</label>
-                    <textarea
-                      className="input min-h-[120px] align-top font-mono text-sm"
-                      placeholder={"Quote text — Author\nAnother quote — Someone"}
-                      value={cfg.customQuotes || ''}
-                      onChange={(e) => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, customQuotes: e.target.value }) })}
-                    />
-                    <p className="text-xs text-[var(--text-tertiary)] italic">One quote per line. Format: Quote text — Author</p>
-                  </div>
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Custom Quotes</label>
+                      <textarea
+                        className="input min-h-[120px] align-top font-mono text-sm"
+                        placeholder={"Quote text — Author\nAnother quote — Someone"}
+                        value={cfg.customQuotes || ''}
+                        onChange={(e) => update({ customQuotes: e.target.value })}
+                      />
+                      <p className="text-xs text-[var(--text-tertiary)] italic">One quote per line. Format: Quote text — Author</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Quote Rotation</label>
+                      <div className="flex gap-2">
+                        {([['daily', 'Day of week'], ['random', 'Date-seeded']] as const).map(([val, lbl]) => (
+                          <button key={val} type="button"
+                            onClick={() => update({ rotationMode: val })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.rotationMode || 'daily') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-[var(--text-tertiary)] italic">Both modes show a new quote per day. Date-seeded varies by calendar date.</p>
+                    </div>
+                  </>
                 );
               })()}
 
               {editingWidget.type === 'countdown' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
                 return (
                   <>
                     <div className="flex flex-col gap-2">
@@ -586,7 +706,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                         className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
                         placeholder="Summer Vacation"
                         value={cfg.eventName || ''}
-                        onChange={(e) => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, eventName: e.target.value }) })}
+                        onChange={(e) => update({ eventName: e.target.value })}
                       />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -595,15 +715,26 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                         type="datetime-local"
                         className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
                         value={cfg.targetDate ? cfg.targetDate.slice(0, 16) : ''}
-                        onChange={(e) => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, targetDate: e.target.value }) })}
+                        onChange={(e) => update({ targetDate: e.target.value })}
                       />
                     </div>
+                    <label className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cfg.showSeconds !== false}
+                        onChange={(e) => update({ showSeconds: e.target.checked })}
+                        className="w-4 h-4 accent-[var(--accent-teal)]"
+                      />
+                      <span className="text-sm">Show seconds tile</span>
+                    </label>
                   </>
                 );
               })()}
 
               {editingWidget.type === 'news' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
                 return (
                   <>
                     <div className="flex flex-col gap-2">
@@ -612,7 +743,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                         className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
                         placeholder="BBC News"
                         value={cfg.label || ''}
-                        onChange={(e) => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, label: e.target.value }) })}
+                        onChange={(e) => update({ label: e.target.value })}
                       />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -621,9 +752,20 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                         className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3 font-mono text-sm"
                         placeholder="https://feeds.bbci.co.uk/news/rss.xml"
                         value={cfg.feedUrl || ''}
-                        onChange={(e) => updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, feedUrl: e.target.value }) })}
+                        onChange={(e) => update({ feedUrl: e.target.value })}
                       />
                       <p className="text-xs text-[var(--text-tertiary)] italic">Leave blank to use BBC News</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Headline Cycle (seconds)</label>
+                      <input
+                        type="number"
+                        min={3}
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        placeholder="8"
+                        value={cfg.cycleSeconds || ''}
+                        onChange={(e) => update({ cycleSeconds: parseInt(e.target.value) || 8 })}
+                      />
                     </div>
                   </>
                 );
@@ -631,12 +773,42 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
 
               {editingWidget.type === 'worldclock' && <WorldClockEditor widget={editingWidget} updateWidget={updateWidget} />}
 
-              {editingWidget.type === 'clock' && (
-                <div className="flex items-center gap-3 p-3 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)]">
-                  <span className="text-lg">🕐</span>
-                  <p className="text-sm text-[var(--text-secondary)]">No configuration needed. Time format is set in <a href="/admin/settings" className="text-[var(--accent-teal)] underline" target="_blank">Settings → Display Preferences</a>.</p>
-                </div>
-              )}
+              {editingWidget.type === 'clock' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
+                return (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Time Format</label>
+                      <div className="flex gap-2">
+                        {([['12h', '12h'], ['24h', '24h']] as const).map(([val, lbl]) => (
+                          <button key={val} type="button"
+                            onClick={() => update({ timeFormat: val })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.timeFormat || '') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                        <button type="button"
+                          onClick={() => { const c = {...cfg}; delete c.timeFormat; updateWidget(editingWidget.id, { config: JSON.stringify(c) }); }}
+                          className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${!cfg.timeFormat ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                          Global
+                        </button>
+                      </div>
+                      <p className="text-xs text-[var(--text-tertiary)] italic">"Global" follows <a href="/admin/settings" className="text-[var(--accent-teal)] underline" target="_blank">Display Preferences</a>.</p>
+                    </div>
+                    <label className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cfg.showFooter !== false}
+                        onChange={(e) => update({ showFooter: e.target.checked })}
+                        className="w-4 h-4 accent-[var(--accent-teal)]"
+                      />
+                      <span className="text-sm">Show footer (Week / Day / UTC)</span>
+                    </label>
+                  </>
+                );
+              })()}
 
               {editingWidget.type === 'datafetch' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();

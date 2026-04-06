@@ -17,7 +17,11 @@ function dayOfYear(d: Date) {
   return Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 86400000);
 }
 
-export function ClockWidget({ widget: _widget, timeFormat = "12h" }: { widget: Widget; timeFormat?: "12h" | "24h" }) {
+export function ClockWidget({ widget, timeFormat: globalTimeFormat = "12h" }: { widget: Widget; timeFormat?: "12h" | "24h" }) {
+  const config = typeof widget.config === 'string' ? JSON.parse(widget.config || '{}') : (widget.config || {});
+  const timeFormat: "12h" | "24h" = config.timeFormat || globalTimeFormat;
+  const showFooter: boolean = config.showFooter !== false;
+
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -55,19 +59,21 @@ export function ClockWidget({ widget: _widget, timeFormat = "12h" }: { widget: W
         </div>
       </div>
 
-      <div className="mt-auto pt-6 border-t border-[var(--border-color)]/30">
-        <div className="flex justify-between text-sm">
-          <div suppressHydrationWarning className="text-[var(--text-secondary)]">
-            <span className="font-medium">Week</span> {now ? format(now, "w") : "--"}
-          </div>
-          <div suppressHydrationWarning className="text-[var(--text-secondary)]">
-            <span className="font-medium">Day</span> {now ? dayOfYear(now) : "--"}/365
-          </div>
-          <div suppressHydrationWarning className="text-[var(--text-secondary)]">
-            <span className="font-medium">UTC</span> {now ? format(now, "HH:mm") : "--:--"}
+      {showFooter && (
+        <div className="mt-auto pt-6 border-t border-[var(--border-color)]/30">
+          <div className="flex justify-between text-sm">
+            <div suppressHydrationWarning className="text-[var(--text-secondary)]">
+              <span className="font-medium">Week</span> {now ? format(now, "w") : "--"}
+            </div>
+            <div suppressHydrationWarning className="text-[var(--text-secondary)]">
+              <span className="font-medium">Day</span> {now ? dayOfYear(now) : "--"}/365
+            </div>
+            <div suppressHydrationWarning className="text-[var(--text-secondary)]">
+              <span className="font-medium">UTC</span> {now ? format(now, "HH:mm") : "--:--"}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

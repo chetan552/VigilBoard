@@ -29,6 +29,7 @@ export function CountdownWidget({ widget }: { widget: Widget }) {
   const config = widget.config ? (() => { try { return JSON.parse(widget.config!); } catch { return {}; } })() : {};
   const eventName = config.eventName || "Event";
   const targetDate = config.targetDate || "";
+  const showSeconds: boolean = config.showSeconds !== false;
 
   const [timeLeft, setTimeLeft] = useState(() =>
     targetDate ? getTimeLeft(targetDate) : null
@@ -70,7 +71,7 @@ export function CountdownWidget({ widget }: { widget: Widget }) {
             { value: timeLeft.days, label: "Days" },
             { value: timeLeft.hours, label: "Hrs" },
             { value: timeLeft.minutes, label: "Min" },
-            { value: timeLeft.seconds, label: "Sec" },
+            ...(showSeconds ? [{ value: timeLeft.seconds, label: "Sec" }] : []),
           ].map(({ value, label }) => (
             <div key={label} className="flex flex-col items-center gap-1">
               <div className="w-14 h-14 glass rounded-xl flex items-center justify-center border border-[var(--border-color)]">

@@ -31,11 +31,21 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
   const title = config.title || listName;
   const showHeader: boolean = config.showHeader !== false;
   const showProgress: boolean = config.showProgress !== false;
+  const showCompleted: boolean = config.showCompleted !== false;
+  const maxTasks: number = config.maxTasks ? parseInt(config.maxTasks) : 20;
+  const sortOrder: string = config.sortOrder || "newest";
+
+  const orderBy =
+    sortOrder === "oldest"
+      ? { createdAt: "asc" as const }
+      : sortOrder === "alpha"
+      ? { title: "asc" as const }
+      : { createdAt: "desc" as const };
 
   const tasks = await prisma.task.findMany({
-    where: { listName },
-    orderBy: { createdAt: 'desc' },
-    take: 8,
+    where: { listName, ...(showCompleted ? {} : { completed: false }) },
+    orderBy,
+    take: maxTasks,
   });
 
   const completedCount = tasks.filter(t => t.completed).length;
