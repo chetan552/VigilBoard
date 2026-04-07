@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WidgetRenderer } from "@/components/widgets/WidgetRenderer";
 import { ScreenControls } from "@/components/ScreenControls";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { TasksAutoSync } from "@/components/TasksAutoSync";
 import { getPrefs } from "@/lib/prefs";
 
 type Props = { params: Promise<{ id: string }> };
@@ -20,6 +21,7 @@ export default async function LiveScreen(props: Props) {
     <div className="w-screen h-screen bg-[var(--bg-color)] p-6 overflow-hidden">
       <ScreenControls adminHref="/admin" />
       <AutoRefresh intervalMs={prefs.refreshInterval} />
+      <TasksAutoSync />
       {screen.widgets.length === 0 ? (
         <div className="flex flex-col h-full items-center justify-center text-center gap-6">
           <div className="glass rounded-3xl p-12 flex flex-col items-center justify-center gap-6">
