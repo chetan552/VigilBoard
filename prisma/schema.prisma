@@ -46,3 +46,25 @@ model Config {
   updatedAt DateTime @updatedAt
 }
 
+model Chore {
+  id          String   @id @default(cuid())
+  title       String
+  assignee    String
+  dayOfWeek   String   @default("daily") // "daily" | "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat"
+  completedOn String?  // ISO date "2025-01-15" — set to today when checked, null when unchecked
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MealPlan {
+  id        String   @id @default(cuid())
+  dayOfWeek Int      // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  mealType  String   @default("dinner") // "breakfast" | "lunch" | "dinner"
+  title     String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([dayOfWeek, mealType])
+}
+

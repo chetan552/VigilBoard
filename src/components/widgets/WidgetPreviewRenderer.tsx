@@ -15,7 +15,7 @@ import { NewsWidget } from "./NewsWidget";
 import { WorldClockWidget } from "./WorldClockWidget";
 import { DataFetchWidget } from "./DataFetchWidget";
 import { BibleWidget } from "./BibleWidget";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, ClipboardList, UtensilsCrossed } from "lucide-react";
 import type { DisplayPrefs } from "@/lib/prefs";
 
 type Widget = {
@@ -27,6 +27,42 @@ type Widget = {
   h: number;
   config: string | null;
 };
+
+function ChoreChartPlaceholder() {
+  return (
+    <div className="flex flex-col h-full w-full p-4 gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="w-7 h-7 glass bg-gradient-to-br from-purple-500/20 to-transparent rounded-lg flex items-center justify-center">
+          <ClipboardList size={14} className="text-purple-400" />
+        </div>
+        <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Chore Chart</span>
+      </div>
+      <div className="flex flex-col gap-1.5 flex-1">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-7 bg-[var(--surface-hover)] rounded-lg border border-[var(--border-color)] opacity-40 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MealPlannerPlaceholder() {
+  return (
+    <div className="flex flex-col h-full w-full p-4 gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="w-7 h-7 glass bg-gradient-to-br from-orange-500/20 to-transparent rounded-lg flex items-center justify-center">
+          <UtensilsCrossed size={14} className="text-orange-400" />
+        </div>
+        <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Meal Planner</span>
+      </div>
+      <div className="flex flex-col gap-1.5 flex-1">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-7 bg-[var(--surface-hover)] rounded-lg border border-[var(--border-color)] opacity-40 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function TasksPlaceholder({ widget }: { widget: Widget }) {
   const cfg = (() => { try { return JSON.parse(widget.config || "{}"); } catch { return {}; } })();
@@ -72,6 +108,10 @@ export function WidgetPreviewRenderer({ widget, prefs }: { widget: Widget; prefs
       return <DataFetchWidget widget={widget} />;
     case "bible":
       return <BibleWidget widget={widget} />;
+    case "chorechart":
+      return <ChoreChartPlaceholder />;
+    case "mealplanner":
+      return <MealPlannerPlaceholder />;
     case "tasks":
       return <TasksPlaceholder widget={widget} />;
     default:

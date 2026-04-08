@@ -40,6 +40,8 @@ const WIDGET_TYPES = [
   { id: 'worldclock', label: 'World Clock', w: 6, h: 6 },
   { id: 'datafetch', label: 'Data Fetch', w: 4, h: 4 },
   { id: 'bible', label: 'Bible Verse', w: 10, h: 3 },
+  { id: 'chorechart', label: 'Chore Chart', w: 5, h: 8 },
+  { id: 'mealplanner', label: 'Meal Planner', w: 6, h: 8 },
 ];
 
 type GoogleCalendarList = { id: string; title: string };
@@ -730,6 +732,114 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
+              {editingWidget.type === 'chorechart' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
+                return (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Title</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        placeholder="Chores"
+                        value={cfg.title || ''}
+                        onChange={(e) => update({ title: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Filter Assignee</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        placeholder="Leave blank to show all"
+                        value={cfg.filterAssignee || ''}
+                        onChange={(e) => update({ filterAssignee: e.target.value })}
+                      />
+                      <p className="text-xs text-[var(--text-tertiary)] italic">Show chores for one person only, or leave blank for everyone.</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Group By</label>
+                      <div className="flex gap-2">
+                        {([['assignee', 'Assignee'], ['day', 'Day']] as const).map(([val, lbl]) => (
+                          <button key={val} type="button"
+                            onClick={() => update({ groupBy: val })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.groupBy || 'assignee') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cfg.showHeader !== false}
+                        onChange={(e) => update({ showHeader: e.target.checked })}
+                        className="w-4 h-4 accent-[var(--accent-teal)]"
+                      />
+                      <span className="text-sm">Show header</span>
+                    </label>
+                    <div className="flex items-center gap-2 p-3 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)]">
+                      <p className="text-xs text-[var(--text-secondary)]">Manage chores in <a href="/admin/chores" className="text-[var(--accent-teal)] underline" target="_blank">Admin → Chore Chart</a>.</p>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {editingWidget.type === 'mealplanner' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
+                return (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Title</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        placeholder="Meal Planner"
+                        value={cfg.title || ''}
+                        onChange={(e) => update({ title: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Meal Type</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {([['dinner', 'Dinner'], ['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['all', 'All']] as const).map(([val, lbl]) => (
+                          <button key={val} type="button"
+                            onClick={() => update({ mealType: val })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.mealType || 'dinner') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">View</label>
+                      <div className="flex gap-2">
+                        {([['week', 'Full Week'], ['today', "Today Only"]] as const).map(([val, lbl]) => (
+                          <button key={val} type="button"
+                            onClick={() => update({ view: val })}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${(cfg.view || 'week') === val ? 'bg-[var(--accent-teal)] text-black border-[var(--accent-teal)]' : 'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--accent-teal)]'}`}>
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cfg.showHeader !== false}
+                        onChange={(e) => update({ showHeader: e.target.checked })}
+                        className="w-4 h-4 accent-[var(--accent-teal)]"
+                      />
+                      <span className="text-sm">Show header</span>
+                    </label>
+                    <div className="flex items-center gap-2 p-3 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)]">
+                      <p className="text-xs text-[var(--text-secondary)]">Plan meals in <a href="/admin/meals" className="text-[var(--accent-teal)] underline" target="_blank">Admin → Meal Planner</a>.</p>
+                    </div>
+                  </>
+                );
+              })()}
+
               {editingWidget.type === 'countdown' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
                 const update = (patch: Record<string, unknown>) =>
@@ -933,7 +1043,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
-              {!['weather','tasks','text','photos','calendar','quotes','countdown','news','worldclock','clock','datafetch','bible'].includes(editingWidget.type) && (
+              {!['weather','tasks','text','photos','calendar','quotes','countdown','news','worldclock','clock','datafetch','bible','chorechart','mealplanner'].includes(editingWidget.type) && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Widget Properties (JSON Config)</label>
                   <textarea
