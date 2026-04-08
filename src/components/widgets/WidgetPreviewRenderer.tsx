@@ -14,6 +14,7 @@ import { CountdownWidget } from "./CountdownWidget";
 import { NewsWidget } from "./NewsWidget";
 import { WorldClockWidget } from "./WorldClockWidget";
 import { DataFetchWidget } from "./DataFetchWidget";
+import { BibleWidget } from "./BibleWidget";
 import { CheckSquare } from "lucide-react";
 import type { DisplayPrefs } from "@/lib/prefs";
 
@@ -69,6 +70,8 @@ export function WidgetPreviewRenderer({ widget, prefs }: { widget: Widget; prefs
       return <WorldClockWidget widget={widget} />;
     case "datafetch":
       return <DataFetchWidget widget={widget} />;
+    case "bible":
+      return <BibleWidget widget={widget} />;
     case "tasks":
       return <TasksPlaceholder widget={widget} />;
     default:

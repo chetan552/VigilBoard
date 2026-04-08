@@ -9,6 +9,7 @@ import { CountdownWidget } from "./CountdownWidget";
 import { NewsWidget } from "./NewsWidget";
 import { WorldClockWidget } from "./WorldClockWidget";
 import { DataFetchWidget } from "./DataFetchWidget";
+import { BibleWidget } from "./BibleWidget";
 import type { DisplayPrefs } from "@/lib/prefs";
 
 type Widget = {
@@ -45,6 +46,8 @@ export function WidgetRenderer({ widget, prefs }: { widget: Widget; prefs?: Disp
       return <WorldClockWidget widget={widget} />;
     case 'datafetch':
       return <DataFetchWidget widget={widget} />;
+    case 'bible':
+      return <BibleWidget widget={widget} />;
     default:
       return <div className="p-4 flex items-center justify-center h-full">Unknown Widget</div>;
   }

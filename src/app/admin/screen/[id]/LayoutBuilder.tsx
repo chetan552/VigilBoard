@@ -39,6 +39,7 @@ const WIDGET_TYPES = [
   { id: 'news', label: 'News Feed', w: 6, h: 6 },
   { id: 'worldclock', label: 'World Clock', w: 6, h: 6 },
   { id: 'datafetch', label: 'Data Fetch', w: 4, h: 4 },
+  { id: 'bible', label: 'Bible Verse', w: 10, h: 3 },
 ];
 
 type GoogleCalendarList = { id: string; title: string };
@@ -694,6 +695,41 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
+              {editingWidget.type === 'bible' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
+                return (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Translation</label>
+                      <select
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        value={cfg.translation || 'kjv'}
+                        onChange={(e) => update({ translation: e.target.value })}
+                      >
+                        <option value="kjv">King James (KJV)</option>
+                        <option value="asv">American Standard (ASV)</option>
+                        <option value="web">World English Bible (WEB)</option>
+                        <option value="bbe">Bible in Basic English (BBE)</option>
+                        <option value="darby">Darby</option>
+                        <option value="ylt">Young&apos;s Literal (YLT)</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Custom Verses</label>
+                      <textarea
+                        className="input min-h-[120px] align-top font-mono text-sm"
+                        placeholder={"John 3:16\nPsalm 23:1-6\nRomans 8:28"}
+                        value={cfg.customVerses || ''}
+                        onChange={(e) => update({ customVerses: e.target.value })}
+                      />
+                      <p className="text-xs text-[var(--text-tertiary)] italic">Optional. One verse per line. Leave blank to use the default 50-verse rotation.</p>
+                    </div>
+                  </>
+                );
+              })()}
+
               {editingWidget.type === 'countdown' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
                 const update = (patch: Record<string, unknown>) =>
@@ -897,7 +933,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
-              {!['weather','tasks','text','photos','calendar','quotes','countdown','news','worldclock','clock','datafetch'].includes(editingWidget.type) && (
+              {!['weather','tasks','text','photos','calendar','quotes','countdown','news','worldclock','clock','datafetch','bible'].includes(editingWidget.type) && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Widget Properties (JSON Config)</label>
                   <textarea
