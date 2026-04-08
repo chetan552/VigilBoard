@@ -42,6 +42,7 @@ const WIDGET_TYPES = [
   { id: 'bible', label: 'Bible Verse', w: 10, h: 3 },
   { id: 'chorechart', label: 'Chore Chart', w: 5, h: 8 },
   { id: 'mealplanner', label: 'Meal Planner', w: 6, h: 8 },
+  { id: 'homework', label: 'Homework', w: 5, h: 8 },
 ];
 
 type GoogleCalendarList = { id: string; title: string };
@@ -840,6 +841,57 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
+              {editingWidget.type === 'homework' && (() => {
+                const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
+                const update = (patch: Record<string, unknown>) =>
+                  updateWidget(editingWidget.id, { config: JSON.stringify({ ...cfg, ...patch }) });
+                return (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Filter Student</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        placeholder="Leave blank to show all students"
+                        value={cfg.filterAssignee || ''}
+                        onChange={(e) => update({ filterAssignee: e.target.value })}
+                      />
+                      <p className="text-xs text-[var(--text-tertiary)] italic">Show one student&apos;s assignments only, or leave blank for everyone.</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Custom Title</label>
+                      <input
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        placeholder="Defaults to student name + Homework"
+                        value={cfg.title || ''}
+                        onChange={(e) => update({ title: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Display</label>
+                      <div className="flex flex-col gap-2">
+                        {([
+                          ['showHeader', 'Show header'],
+                          ['showCompleted', 'Show completed assignments'],
+                        ] as const).map(([key, label]) => (
+                          <label key={key} className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={key === 'showCompleted' ? cfg[key] === true : cfg[key] !== false}
+                              onChange={(e) => update({ [key]: e.target.checked })}
+                              className="w-4 h-4 accent-[var(--accent-teal)]"
+                            />
+                            <span className="text-sm">{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)]">
+                      <p className="text-xs text-[var(--text-secondary)]">Manage assignments in <a href="/admin/homework" className="text-[var(--accent-teal)] underline" target="_blank">Admin → Homework</a>.</p>
+                    </div>
+                  </>
+                );
+              })()}
+
               {editingWidget.type === 'countdown' && (() => {
                 const cfg = (() => { try { return JSON.parse(editingWidget.config || '{}'); } catch { return {}; } })();
                 const update = (patch: Record<string, unknown>) =>
@@ -1043,7 +1095,7 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                 );
               })()}
 
-              {!['weather','tasks','text','photos','calendar','quotes','countdown','news','worldclock','clock','datafetch','bible','chorechart','mealplanner'].includes(editingWidget.type) && (
+              {!['weather','tasks','text','photos','calendar','quotes','countdown','news','worldclock','clock','datafetch','bible','chorechart','mealplanner','homework'].includes(editingWidget.type) && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider text-left">Widget Properties (JSON Config)</label>
                   <textarea

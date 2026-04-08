@@ -12,6 +12,7 @@ import { DataFetchWidget } from "./DataFetchWidget";
 import { BibleWidget } from "./BibleWidget";
 import { ChoreChartWidget } from "./ChoreChartWidget";
 import { MealPlannerWidget } from "./MealPlannerWidget";
+import { HomeworkWidget } from "./HomeworkWidget";
 import type { DisplayPrefs } from "@/lib/prefs";
 
 type Widget = {
@@ -54,6 +55,8 @@ export function WidgetRenderer({ widget, prefs }: { widget: Widget; prefs?: Disp
       return <ChoreChartWidget widget={widget} />;
     case 'mealplanner':
       return <MealPlannerWidget widget={widget} />;
+    case 'homework':
+      return <HomeworkWidget widget={widget} />;
     default:
       return <div className="p-4 flex items-center justify-center h-full">Unknown Widget</div>;
   }

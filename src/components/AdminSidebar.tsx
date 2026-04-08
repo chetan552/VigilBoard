@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { LayoutDashboard, Monitor, Settings, CheckSquare, ClipboardList, UtensilsCrossed, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Monitor, Settings, CheckSquare, ClipboardList, UtensilsCrossed, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
@@ -14,6 +14,7 @@ export function AdminSidebar() {
     { href: "/admin/tasks", icon: CheckSquare, label: "Tasks", title: "Manage Tasks" },
     { href: "/admin/chores", icon: ClipboardList, label: "Chores", title: "Chore Chart" },
     { href: "/admin/meals", icon: UtensilsCrossed, label: "Meals", title: "Meal Planner" },
+    { href: "/admin/homework", icon: BookOpen, label: "Homework", title: "Homework Tracker" },
     { href: "/admin/settings", icon: Settings, label: "Settings", title: "Global Settings" },
   ];
 

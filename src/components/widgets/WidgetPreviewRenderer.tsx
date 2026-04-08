@@ -15,7 +15,7 @@ import { NewsWidget } from "./NewsWidget";
 import { WorldClockWidget } from "./WorldClockWidget";
 import { DataFetchWidget } from "./DataFetchWidget";
 import { BibleWidget } from "./BibleWidget";
-import { CheckSquare, ClipboardList, UtensilsCrossed } from "lucide-react";
+import { CheckSquare, ClipboardList, UtensilsCrossed, BookOpen } from "lucide-react";
 import type { DisplayPrefs } from "@/lib/prefs";
 
 type Widget = {
@@ -54,6 +54,24 @@ function MealPlannerPlaceholder() {
           <UtensilsCrossed size={14} className="text-orange-400" />
         </div>
         <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Meal Planner</span>
+      </div>
+      <div className="flex flex-col gap-1.5 flex-1">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-7 bg-[var(--surface-hover)] rounded-lg border border-[var(--border-color)] opacity-40 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HomeworkPlaceholder() {
+  return (
+    <div className="flex flex-col h-full w-full p-4 gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="w-7 h-7 glass bg-gradient-to-br from-blue-500/20 to-transparent rounded-lg flex items-center justify-center">
+          <BookOpen size={14} className="text-blue-400" />
+        </div>
+        <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Homework</span>
       </div>
       <div className="flex flex-col gap-1.5 flex-1">
         {[...Array(4)].map((_, i) => (
@@ -112,6 +130,8 @@ export function WidgetPreviewRenderer({ widget, prefs }: { widget: Widget; prefs
       return <ChoreChartPlaceholder />;
     case "mealplanner":
       return <MealPlannerPlaceholder />;
+    case "homework":
+      return <HomeworkPlaceholder />;
     case "tasks":
       return <TasksPlaceholder widget={widget} />;
     default:
