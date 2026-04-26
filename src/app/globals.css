@@ -102,6 +102,34 @@ body {
   background: var(--text-secondary);
 }
 
+/* Touch-friendly scrolling for widget containers on the live screen.
+ * - touch-action: pan-y → permits vertical finger pan, blocks zoom/pinch
+ * - overscroll-behavior: contain → keeps the scroll inside the widget
+ * - -webkit-overflow-scrolling: touch → iOS momentum scrolling
+ * - chunkier scrollbar (16px) so it can be grabbed on a touch screen */
+.touch-scroll {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.touch-scroll::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+.touch-scroll::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 8px;
+  border: 3px solid var(--surface-color);
+}
+
+.touch-scroll::-webkit-scrollbar-thumb:hover,
+.touch-scroll::-webkit-scrollbar-thumb:active {
+  background: var(--text-secondary);
+}
+
 /* Selection */
 ::selection {
   background-color: var(--accent-teal-glow);

@@ -98,7 +98,7 @@ export async function MealPlannerWidget({ widget }: { widget: Widget }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5 flex-grow min-h-0 overflow-y-auto [touch-action:pan-y]">
+      <div className="flex flex-col gap-1.5 flex-grow min-h-0 overflow-y-auto touch-scroll">
         {DAY_NAMES_SHORT.map((day, dow) => {
           const isToday = dow === todayDow;
           const dayMeals = mealMap[dow] ?? {};

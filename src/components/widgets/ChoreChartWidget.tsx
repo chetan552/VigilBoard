@@ -101,7 +101,7 @@ export async function ChoreChartWidget({ widget }: { widget: Widget }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-3 flex-grow min-h-0 overflow-y-auto pr-1 [touch-action:pan-y]">
+      <div className="flex flex-col gap-3 flex-grow min-h-0 overflow-y-auto pr-1 touch-scroll">
         {Object.entries(grouped).map(([group, items]) => (
           <div key={group}>
             <p className="text-[10px] font-bold uppercase tracking-wider text-purple-400 mb-1.5 px-1">{group}</p>

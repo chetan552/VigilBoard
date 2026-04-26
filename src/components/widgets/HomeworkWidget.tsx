@@ -76,7 +76,7 @@ export async function HomeworkWidget({ widget }: { widget: Widget }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-2 flex-grow min-h-0 overflow-y-auto pr-1 [touch-action:pan-y]">
+      <div className="flex flex-col gap-2 flex-grow min-h-0 overflow-y-auto pr-1 touch-scroll">
         {assignments.map((hw) => {
           const colorClass = subjectColor(hw.subject);
           return (

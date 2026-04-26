@@ -170,7 +170,7 @@ export function CalendarWidget({ widget }: { widget: Widget }) {
         </div>{/* end sticky header */}
 
         {/* Day cells — scrollable */}
-        <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-4">
+        <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-4 touch-scroll">
           <div className={`grid grid-cols-7 transition-opacity duration-200 ${loading ? "opacity-40" : "opacity-100"}`}>
             {cells}
           </div>
@@ -178,7 +178,7 @@ export function CalendarWidget({ widget }: { widget: Widget }) {
       </div>
 
       {/* Agenda / Day detail panel */}
-      <div className="w-[220px] shrink-0 p-5 flex flex-col glass overflow-y-auto">
+      <div className="w-[220px] shrink-0 p-5 flex flex-col glass overflow-y-auto touch-scroll">
         {selectedDay !== null ? (
           <>
             <div className="flex items-center justify-between mb-5">
