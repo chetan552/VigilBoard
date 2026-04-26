@@ -1,7 +1,28 @@
 import { prisma } from "@/lib/prisma";
 import { AdminTopbar } from "@/components/AdminTopbar";
 import { revalidatePath } from "next/cache";
-import { Plus, Trash2, BookOpen, CheckCircle, Circle } from "lucide-react";
+import { Plus, Trash2, BookOpen, CheckCircle, Circle, Calendar, Link as LinkIcon } from "lucide-react";
+import { IcsSyncButton } from "./IcsSyncButton";
+
+type IcsFeed = {
+  assignee: string;
+  url: string;
+  lastSynced: string | null;
+};
+
+async function getIcsFeeds(): Promise<IcsFeed[]> {
+  const row = await prisma.config.findUnique({ where: { key: "homework_ics_feeds" } });
+  if (!row) return [];
+  try { return JSON.parse(row.value); } catch { return []; }
+}
+
+async function saveIcsFeeds(feeds: IcsFeed[]) {
+  await prisma.config.upsert({
+    where: { key: "homework_ics_feeds" },
+    update: { value: JSON.stringify(feeds) },
+    create: { key: "homework_ics_feeds", value: JSON.stringify(feeds) },
+  });
+}
 
 const SUBJECTS = ["Math", "Science", "English", "History", "Reading", "Writing", "Art", "Music", "PE", "Other"];
 
@@ -47,10 +68,37 @@ async function clearCompleted() {
   revalidatePath("/admin/homework");
 }
 
+async function addIcsFeed(formData: FormData) {
+  "use server";
+  const assignee = (formData.get("assignee") as string).trim();
+  const url = (formData.get("url") as string).trim();
+  if (!assignee || !url) return;
+  const feeds = await getIcsFeeds();
+  if (feeds.find((f) => f.assignee === assignee && f.url === url)) return;
+  feeds.push({ assignee, url, lastSynced: null });
+  await saveIcsFeeds(feeds);
+  revalidatePath("/admin/homework");
+}
+
+async function deleteIcsFeed(assignee: string, url: string, alsoRemoveImported: boolean) {
+  "use server";
+  const feeds = await getIcsFeeds();
+  await saveIcsFeeds(feeds.filter((f) => !(f.assignee === assignee && f.url === url)));
+  if (alsoRemoveImported) {
+    await prisma.homework.deleteMany({
+      where: { assignee, externalId: { not: null } },
+    });
+  }
+  revalidatePath("/admin/homework");
+}
+
 export default async function HomeworkManager() {
-  const assignments = await prisma.homework.findMany({
-    orderBy: [{ completed: "asc" }, { dueDate: "asc" }, { assignee: "asc" }, { subject: "asc" }],
-  });
+  const [assignments, icsFeeds] = await Promise.all([
+    prisma.homework.findMany({
+      orderBy: [{ completed: "asc" }, { dueDate: "asc" }, { assignee: "asc" }, { subject: "asc" }],
+    }),
+    getIcsFeeds(),
+  ]);
 
   // Group by assignee
   const grouped: Record<string, typeof assignments> = {};
@@ -91,6 +139,66 @@ export default async function HomeworkManager() {
               <Plus size={18} /> Add
             </button>
           </form>
+        </div>
+
+        {/* Calendar feed import */}
+        <div className="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] p-6 shrink-0">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar size={18} className="text-[var(--accent-teal)]" />
+            <h3 className="font-bold">Import from Calendar Feed</h3>
+          </div>
+          <p className="text-xs text-[var(--text-secondary)] mb-4">
+            Paste an iCalendar (.ics) URL — e.g. from Canvas, Google Classroom, or a school portal.
+            Each student can have one feed. Imported assignments preserve their completed status across syncs.
+          </p>
+          <form action={addIcsFeed} className="flex flex-wrap gap-3 items-end mb-4">
+            <div className="flex flex-col gap-1.5 min-w-[140px]">
+              <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Student</label>
+              <input name="assignee" required className="input" placeholder="Name" />
+            </div>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[280px]">
+              <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">.ics URL</label>
+              <input name="url" required type="url" className="input font-mono text-xs" placeholder="https://….ics" />
+            </div>
+            <button type="submit" className="btn btn-primary h-10 px-5 shrink-0">
+              <Plus size={18} /> Add Feed
+            </button>
+          </form>
+
+          {icsFeeds.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {icsFeeds.map((feed) => (
+                <div
+                  key={`${feed.assignee}::${feed.url}`}
+                  className="flex items-center gap-3 p-3 bg-[var(--surface-hover)] border border-[var(--border-color)] rounded-xl"
+                >
+                  <div className="w-8 h-8 glass bg-gradient-to-br from-[var(--accent-teal)]/20 to-transparent rounded-lg flex items-center justify-center shrink-0">
+                    <LinkIcon size={14} className="text-[var(--accent-teal)]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">{feed.assignee}</p>
+                    <p className="text-[10px] font-mono text-[var(--text-tertiary)] truncate" title={feed.url}>{feed.url}</p>
+                    <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">
+                      {feed.lastSynced
+                        ? `Last synced ${new Date(feed.lastSynced).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+                        : "Never synced"}
+                    </p>
+                  </div>
+                  <IcsSyncButton assignee={feed.assignee} url={feed.url} />
+                  <form action={deleteIcsFeed.bind(null, feed.assignee, feed.url, false)}>
+                    <button
+                      type="submit"
+                      className="p-1.5 text-[var(--text-tertiary)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title="Remove feed (keep imported assignments)"
+                      aria-label="Remove feed"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Clear completed */}
