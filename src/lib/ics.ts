@@ -48,15 +48,22 @@ function unescapeValue(value: string): string {
     .replace(/\\\\/g, "\\");
 }
 
-// Format an ICS DTSTART value into a short human-readable date string.
-// Accepts "20250115T235900Z" or "20250115" → "Jan 15"
-export function formatICSDate(raw: string | undefined): string | null {
+// Parse an ICS DTSTART value into a Date object (UTC midnight of the due day).
+// Accepts "20250115T235900Z" or "20250115".
+export function parseICSDate(raw: string | undefined): Date | null {
   if (!raw) return null;
   const m = raw.match(/^(\d{4})(\d{2})(\d{2})/);
   if (!m) return null;
   const [, y, mo, d] = m;
   const date = new Date(Date.UTC(parseInt(y), parseInt(mo) - 1, parseInt(d)));
-  if (isNaN(date.getTime())) return null;
+  return isNaN(date.getTime()) ? null : date;
+}
+
+// Format an ICS DTSTART value into a short human-readable date string.
+// Accepts "20250115T235900Z" or "20250115" → "Jan 15"
+export function formatICSDate(raw: string | undefined): string | null {
+  const date = parseICSDate(raw);
+  if (!date) return null;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
 

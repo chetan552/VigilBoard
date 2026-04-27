@@ -867,16 +867,33 @@ export function LayoutBuilder({ initialScreen, taskListNames = [], prefs }: { in
                       />
                     </div>
                     <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Show Assignments Due</label>
+                      <select
+                        className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-3"
+                        value={cfg.dueWithin || 'all'}
+                        onChange={(e) => update({ dueWithin: e.target.value })}
+                      >
+                        <option value="all">All assignments</option>
+                        <option value="today">Today only</option>
+                        <option value="this_week">This week (through Saturday)</option>
+                        <option value="this_and_next_week">This week + next week</option>
+                        <option value="this_month">This calendar month</option>
+                        <option value="next_30_days">Next 30 days</option>
+                      </select>
+                      <p className="text-xs text-[var(--text-tertiary)] italic">Overdue assignments always show until completed.</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
                       <label className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Display</label>
                       <div className="flex flex-col gap-2">
                         {([
-                          ['showHeader', 'Show header'],
-                          ['showCompleted', 'Show completed assignments'],
-                        ] as const).map(([key, label]) => (
+                          ['showHeader', 'Show header', true],
+                          ['showCompleted', 'Show completed assignments', false],
+                          ['includeUndated', 'Include assignments with no due date', true],
+                        ] as const).map(([key, label, defaultOn]) => (
                           <label key={key} className="flex items-center gap-3 px-3 py-2.5 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={key === 'showCompleted' ? cfg[key] === true : cfg[key] !== false}
+                              checked={defaultOn ? cfg[key] !== false : cfg[key] === true}
                               onChange={(e) => update({ [key]: e.target.checked })}
                               className="w-4 h-4 accent-[var(--accent-teal)]"
                             />

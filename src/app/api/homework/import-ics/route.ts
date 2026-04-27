@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { parseICS, parseCanvasSummary, inferSubject, formatICSDate } from "@/lib/ics";
+import { parseICS, parseCanvasSummary, inferSubject, formatICSDate, parseICSDate } from "@/lib/ics";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -39,23 +39,27 @@ export async function POST(req: NextRequest) {
       }
       const { title, course } = parseCanvasSummary(event.summary);
       const subject = inferSubject(course || event.summary);
-      const dueDate = formatICSDate(event.dtstart || event.dtend);
+      const rawDate = event.dtstart || event.dtend;
+      const dueDate = formatICSDate(rawDate);
+      const dueAt = parseICSDate(rawDate);
 
       try {
         const existing = await prisma.homework.findUnique({
           where: { externalId: event.uid },
         });
         if (existing) {
-          // Preserve completed status; update title/subject/dueDate if changed
+          // Preserve completed status; update title/subject/dueDate/dueAt if changed
+          const dueAtChanged = (existing.dueAt?.getTime() ?? null) !== (dueAt?.getTime() ?? null);
           if (
             existing.title !== title ||
             existing.subject !== subject ||
             existing.dueDate !== dueDate ||
-            existing.assignee !== assignee
+            existing.assignee !== assignee ||
+            dueAtChanged
           ) {
             await prisma.homework.update({
               where: { externalId: event.uid },
-              data: { title, subject, dueDate, assignee },
+              data: { title, subject, dueDate, dueAt, assignee },
             });
             updated++;
           } else {
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
           }
         } else {
           await prisma.homework.create({
-            data: { title, subject, dueDate, assignee, externalId: event.uid },
+            data: { title, subject, dueDate, dueAt, assignee, externalId: event.uid },
           });
           imported++;
         }

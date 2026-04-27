@@ -57,15 +57,16 @@ model Chore {
 }
 
 model Homework {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   assignee   String
   subject    String
   title      String
-  dueDate    String?  // e.g. "Apr 10"
-  completed  Boolean  @default(false)
-  externalId String?  @unique // ICS UID — set for assignments imported from a calendar feed
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  dueDate    String?   // display string, e.g. "Apr 10"
+  dueAt      DateTime? // actual date for range filtering (UTC midnight of the due day)
+  completed  Boolean   @default(false)
+  externalId String?   @unique // ICS UID — set for assignments imported from a calendar feed
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model MealPlan {

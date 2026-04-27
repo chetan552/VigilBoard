@@ -29,6 +29,44 @@ function subjectColor(subject: string): string {
   return SUBJECT_COLORS[subject] ?? SUBJECT_COLORS["Other"];
 }
 
+type DueWithin = "all" | "today" | "this_week" | "this_and_next_week" | "this_month" | "next_30_days";
+
+// Returns the upper bound (inclusive end-of-day) for the given filter, in UTC.
+// Lower bound is unbounded — assignments overdue from any point in the past
+// still show, since they're not done yet.
+function dueUpperBound(filter: DueWithin, now: Date): Date | null {
+  if (filter === "all") return null;
+  // Use UTC to match ICS dates (stored as UTC midnight).
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth();
+  const d = now.getUTCDate();
+  const dow = now.getUTCDay(); // 0=Sun..6=Sat
+  const endOfDay = (date: Date) => {
+    const x = new Date(date);
+    x.setUTCHours(23, 59, 59, 999);
+    return x;
+  };
+
+  switch (filter) {
+    case "today":
+      return endOfDay(new Date(Date.UTC(y, m, d)));
+    case "this_week": {
+      // End of Saturday of the current week
+      const daysToSat = 6 - dow;
+      return endOfDay(new Date(Date.UTC(y, m, d + daysToSat)));
+    }
+    case "this_and_next_week": {
+      const daysToSat = 6 - dow;
+      return endOfDay(new Date(Date.UTC(y, m, d + daysToSat + 7)));
+    }
+    case "this_month":
+      // Last day of the current calendar month
+      return endOfDay(new Date(Date.UTC(y, m + 1, 0)));
+    case "next_30_days":
+      return endOfDay(new Date(Date.UTC(y, m, d + 30)));
+  }
+}
+
 export async function HomeworkWidget({ widget }: { widget: Widget }) {
   const config = typeof widget.config === "string" && widget.config
     ? JSON.parse(widget.config)
@@ -37,14 +75,29 @@ export async function HomeworkWidget({ widget }: { widget: Widget }) {
   const filterAssignee: string = config.filterAssignee || "";
   const showCompleted: boolean = config.showCompleted === true;
   const showHeader: boolean = config.showHeader !== false;
+  const dueWithin: DueWithin = config.dueWithin || "all";
+  const includeUndated: boolean = config.includeUndated !== false; // default: include manual entries with no date
   const title: string = config.title || (filterAssignee ? `${filterAssignee}'s Homework` : "Homework");
+
+  const upperBound = dueUpperBound(dueWithin, new Date());
+
+  // Build the date filter:
+  // - dueWithin=all → no date filter
+  // - dueWithin=other → assignments with dueAt <= upperBound, OR undated (if includeUndated)
+  let dateClause: object = {};
+  if (upperBound) {
+    dateClause = includeUndated
+      ? { OR: [{ dueAt: { lte: upperBound } }, { dueAt: null }] }
+      : { dueAt: { lte: upperBound } };
+  }
 
   const assignments = await prisma.homework.findMany({
     where: {
       ...(filterAssignee ? { assignee: filterAssignee } : {}),
       ...(showCompleted ? {} : { completed: false }),
+      ...dateClause,
     },
-    orderBy: [{ completed: "asc" }, { dueDate: "asc" }, { subject: "asc" }],
+    orderBy: [{ completed: "asc" }, { dueAt: "asc" }, { dueDate: "asc" }, { subject: "asc" }],
   });
 
   const totalCount = assignments.length;

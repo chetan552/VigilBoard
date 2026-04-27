@@ -44,9 +44,25 @@ async function addAssignment(formData: FormData) {
   const title = (formData.get("title") as string).trim();
   const assignee = (formData.get("assignee") as string).trim();
   const subject = (formData.get("subject") as string) || "Other";
-  const dueDate = (formData.get("dueDate") as string | null)?.trim() || null;
+  const dueRaw = (formData.get("dueDate") as string | null)?.trim() || "";
   if (!title || !assignee) return;
-  await prisma.homework.create({ data: { title, assignee, subject, dueDate } });
+
+  // Parse "YYYY-MM-DD" from <input type="date"> into UTC midnight Date + display string
+  let dueAt: Date | null = null;
+  let dueDate: string | null = null;
+  if (dueRaw) {
+    const m = dueRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) {
+      const [, y, mo, d] = m;
+      dueAt = new Date(Date.UTC(parseInt(y), parseInt(mo) - 1, parseInt(d)));
+      dueDate = dueAt.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    } else {
+      // Fallback: keep whatever the user typed, no dueAt for filtering
+      dueDate = dueRaw;
+    }
+  }
+
+  await prisma.homework.create({ data: { title, assignee, subject, dueDate, dueAt } });
   revalidatePath("/admin/homework");
 }
 
@@ -131,9 +147,9 @@ export default async function HomeworkManager() {
                 {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            <div className="flex flex-col gap-1.5 min-w-[130px]">
+            <div className="flex flex-col gap-1.5 min-w-[150px]">
               <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Due Date</label>
-              <input name="dueDate" className="input" placeholder="e.g. Apr 10" />
+              <input name="dueDate" type="date" className="input" />
             </div>
             <button type="submit" className="btn btn-primary h-10 px-5 shrink-0">
               <Plus size={18} /> Add
