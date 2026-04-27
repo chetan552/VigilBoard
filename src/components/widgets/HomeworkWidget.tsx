@@ -1,6 +1,7 @@
-import { CheckSquare, Square, BookOpen, Calendar } from "lucide-react";
+import { BookOpen, Calendar } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { OptimisticToggle } from "@/components/OptimisticToggle";
 
 type Widget = {
   id: string;
@@ -141,15 +142,16 @@ export async function HomeworkWidget({ widget }: { widget: Widget }) {
                   : "bg-[var(--surface-hover)] border-[var(--border-color)] hover:border-blue-500/40"
               }`}
             >
-              <form action={toggleAssignment.bind(null, hw.id, hw.completed)} className="shrink-0 mt-0.5">
-                <button
-                  type="submit"
-                  className={`p-1 -m-1 transition-colors ${hw.completed ? "text-blue-400" : "text-[var(--text-secondary)] hover:text-blue-400"}`}
-                  aria-label={hw.completed ? `Mark "${hw.title}" incomplete` : `Mark "${hw.title}" complete`}
-                >
-                  {hw.completed ? <CheckSquare size={20} /> : <Square size={20} />}
-                </button>
-              </form>
+              <div className="mt-0.5">
+                <OptimisticToggle
+                  initialCompleted={hw.completed}
+                  toggle={toggleAssignment.bind(null, hw.id, hw.completed)}
+                  ariaLabel={hw.completed ? `Mark "${hw.title}" incomplete` : `Mark "${hw.title}" complete`}
+                  variant="square"
+                  color="blue"
+                  size={20}
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-medium leading-snug ${hw.completed ? "line-through" : ""}`}>
                   {hw.title}

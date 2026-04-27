@@ -1,12 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { AdminTopbar } from "@/components/AdminTopbar";
 import Link from "next/link";
-import { Plus, Eye, Edit, Calendar, Clock, Cloud, Image, Quote, List, Type, Download, Timer, Rss, Globe } from "lucide-react";
+import { Plus, Eye, Edit, Calendar, Clock, Cloud, Image, Quote, List, Type, Download, Timer, Rss, Globe, Sparkles } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { DeleteScreenButton } from "@/components/DeleteScreenButton";
 import { DuplicateScreenButton } from "@/components/DuplicateScreenButton";
 import { ImportScreenButton } from "@/components/ImportScreenButton";
 import { InlineRenameForm } from "@/components/InlineRenameForm";
+import { SCREEN_TEMPLATES } from "@/lib/screen-templates";
+import { redirect } from "next/navigation";
 import React from "react";
 
 async function createScreen(formData: FormData) {
@@ -49,6 +51,29 @@ async function duplicateScreen(id: string) {
     },
   });
   revalidatePath("/admin");
+}
+
+async function createFromTemplate(templateId: string) {
+  "use server";
+  const template = SCREEN_TEMPLATES.find((t) => t.id === templateId);
+  if (!template) return;
+  const screen = await prisma.screen.create({
+    data: {
+      name: template.name,
+      widgets: {
+        create: template.widgets.map(({ type, x, y, w, h, config }) => ({
+          type,
+          x,
+          y,
+          w,
+          h,
+          config: config ? JSON.stringify(config) : null,
+        })),
+      },
+    },
+  });
+  revalidatePath("/admin");
+  redirect(`/admin/screen/${screen.id}`);
 }
 
 async function importScreen(name: string, widgets: unknown[]) {
@@ -111,6 +136,60 @@ export default async function AdminDashboard() {
             </form>
           </div>
         </div>
+
+        {screens.length === 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles size={18} className="text-[var(--accent-teal)]" />
+              <h3 className="text-lg font-bold">Start from a template</h3>
+              <span className="text-xs text-[var(--text-tertiary)]">— or create a blank screen above</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {SCREEN_TEMPLATES.map((tpl) => (
+                <form key={tpl.id} action={createFromTemplate.bind(null, tpl.id)}>
+                  <button
+                    type="submit"
+                    className="card group hover:border-[var(--accent-teal)] transition-colors text-left p-5 w-full h-full flex flex-col gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{tpl.emoji}</span>
+                      <h4 className="font-bold text-base">{tpl.name}</h4>
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed flex-1">{tpl.description}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--accent-teal)] mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Plus size={12} /> Create from template
+                    </div>
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {screens.length > 0 && (
+          <details className="mb-6">
+            <summary className="flex items-center gap-2 cursor-pointer text-sm text-[var(--text-secondary)] hover:text-[var(--accent-teal)] transition-colors mb-3 list-none">
+              <Sparkles size={14} />
+              <span>Add another screen from a template</span>
+            </summary>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+              {SCREEN_TEMPLATES.map((tpl) => (
+                <form key={tpl.id} action={createFromTemplate.bind(null, tpl.id)}>
+                  <button
+                    type="submit"
+                    className="card group hover:border-[var(--accent-teal)] transition-colors text-left p-4 w-full flex items-center gap-3"
+                  >
+                    <span className="text-xl">{tpl.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">{tpl.name}</p>
+                      <p className="text-[11px] text-[var(--text-tertiary)] truncate">{tpl.description}</p>
+                    </div>
+                  </button>
+                </form>
+              ))}
+            </div>
+          </details>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {screens.map((screen) => (

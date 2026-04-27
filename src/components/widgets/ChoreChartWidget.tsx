@@ -1,6 +1,7 @@
-import { CheckSquare, Square, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { OptimisticToggle } from "@/components/OptimisticToggle";
 
 type Widget = {
   id: string;
@@ -117,15 +118,14 @@ export async function ChoreChartWidget({ widget }: { widget: Widget }) {
                         : "bg-[var(--surface-hover)] border-[var(--border-color)] hover:border-purple-500/40"
                     }`}
                   >
-                    <form action={toggleChore.bind(null, chore.id, done)} className="shrink-0">
-                      <button
-                        type="submit"
-                        className={`p-1 -m-1 transition-colors ${done ? "text-purple-400" : "text-[var(--text-secondary)] hover:text-purple-400"}`}
-                        aria-label={done ? `Mark "${chore.title}" incomplete` : `Mark "${chore.title}" complete`}
-                      >
-                        {done ? <CheckSquare size={20} /> : <Square size={20} />}
-                      </button>
-                    </form>
+                    <OptimisticToggle
+                      initialCompleted={done}
+                      toggle={toggleChore.bind(null, chore.id, done)}
+                      ariaLabel={done ? `Mark "${chore.title}" incomplete` : `Mark "${chore.title}" complete`}
+                      variant="square"
+                      color="purple"
+                      size={20}
+                    />
                     <p className={`text-sm font-medium leading-snug flex-1 min-w-0 ${done ? "opacity-50 line-through" : ""}`}>
                       {chore.title}
                     </p>

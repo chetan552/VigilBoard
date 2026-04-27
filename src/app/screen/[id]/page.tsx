@@ -8,18 +8,26 @@ import { HomeworkAutoSync } from "@/components/HomeworkAutoSync";
 import { ScreenWakeLock } from "@/components/ScreenWakeLock";
 import { LastSyncedIndicator } from "@/components/LastSyncedIndicator";
 import { NightDim } from "@/components/NightDim";
+import { SwipeNavigator } from "@/components/SwipeNavigator";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { WidgetLongPressMenu } from "@/components/WidgetLongPressMenu";
 import { getPrefs } from "@/lib/prefs";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function LiveScreen(props: Props) {
   const params = await props.params;
-  const [screen, prefs] = await Promise.all([
+  const [screen, prefs, allScreens] = await Promise.all([
     prisma.screen.findUnique({ where: { id: params.id }, include: { widgets: true } }),
     getPrefs(),
+    prisma.screen.findMany({ orderBy: { createdAt: "asc" }, select: { id: true, name: true } }),
   ]);
 
   if (!screen) notFound();
+
+  const idx = allScreens.findIndex((s) => s.id === params.id);
+  const prev = idx > 0 ? allScreens[idx - 1] : null;
+  const next = idx >= 0 && idx < allScreens.length - 1 ? allScreens[idx + 1] : null;
 
   return (
     <div className="kiosk-screen w-screen h-screen bg-[var(--bg-color)] p-6 overflow-hidden">
@@ -36,6 +44,13 @@ export default async function LiveScreen(props: Props) {
         maxLevel={prefs.nightDimLevel}
         warmth={prefs.nightDimWarmth}
       />
+      <SwipeNavigator
+        prevId={prev?.id ?? null}
+        nextId={next?.id ?? null}
+        prevName={prev?.name}
+        nextName={next?.name}
+      />
+      <PullToRefresh />
       {screen.widgets.length === 0 ? (
         <div className="flex flex-col h-full items-center justify-center text-center gap-6">
           <div className="glass rounded-3xl p-12 flex flex-col items-center justify-center gap-6">
@@ -69,7 +84,14 @@ export default async function LiveScreen(props: Props) {
               }}
               className="card overflow-clip shadow-xl animate-fade-in hover:transform-none hover:shadow-xl [touch-action:pan-y]"
             >
-              <WidgetRenderer widget={widget} prefs={prefs} />
+              <WidgetLongPressMenu
+                widgetType={widget.type}
+                widgetId={widget.id}
+                screenId={screen.id}
+                config={widget.config}
+              >
+                <WidgetRenderer widget={widget} prefs={prefs} />
+              </WidgetLongPressMenu>
             </div>
           ))}
         </div>

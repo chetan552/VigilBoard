@@ -1,6 +1,7 @@
-import { CheckSquare, Square, Plus, Calendar } from "lucide-react";
+import { CheckSquare, Plus, Calendar } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { OptimisticToggle } from "@/components/OptimisticToggle";
 
 type Widget = {
   id: string;
@@ -104,16 +105,16 @@ export async function TasksWidget({ widget }: { widget: Widget }) {
                   : 'bg-[var(--surface-hover)] border-[var(--border-color)] hover:border-green-500/40'
               }`}
             >
-              <form action={toggleTask.bind(null, task.id, task.completed)} className="shrink-0 mt-0.5">
-                <button
-                  type="submit"
-                  className={`p-1 -m-1 transition-colors ${task.completed ? 'text-green-400' : 'text-[var(--text-secondary)] hover:text-green-400'}`}
-                  title={task.completed ? "Mark incomplete" : "Mark complete"}
-                  aria-label={task.completed ? `Mark "${task.title}" incomplete` : `Mark "${task.title}" complete`}
-                >
-                  {task.completed ? <CheckSquare size={24} /> : <Square size={24} />}
-                </button>
-              </form>
+              <div className="mt-0.5">
+                <OptimisticToggle
+                  initialCompleted={task.completed}
+                  toggle={toggleTask.bind(null, task.id, task.completed)}
+                  ariaLabel={task.completed ? `Mark "${task.title}" incomplete` : `Mark "${task.title}" complete`}
+                  variant="square"
+                  color="green"
+                  size={24}
+                />
+              </div>
               <div className="flex-grow min-w-0">
                 <p className={`text-sm font-medium leading-snug ${task.completed ? 'opacity-50 line-through' : ''}`}>
                   {task.title}

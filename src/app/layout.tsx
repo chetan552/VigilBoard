@@ -1,10 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { prisma } from "@/lib/prisma";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
   title: "Vigilboard",
   description: "Family dashboard",
+  appleWebApp: {
+    capable: true,
+    title: "Vigilboard",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0a0a",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const DEFAULT_PREFS = {
@@ -49,6 +62,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <style dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
       <body style={{ fontFamily: "'Satoshi', sans-serif" }} className="min-h-screen flex flex-col bg-[var(--bg-color)] text-[var(--text-primary)] antialiased overflow-hidden">
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>
