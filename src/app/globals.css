@@ -102,6 +102,16 @@ body {
   background: var(--text-secondary);
 }
 
+/* Live screen kiosk mode: hide the mouse cursor on coarse-pointer (touch) devices.
+ * Keeps the cursor visible on a desktop browser so the dashboard is still usable
+ * for layout editing, but disappears on the actual wall-mounted touchscreen. */
+@media (pointer: coarse) {
+  .kiosk-screen,
+  .kiosk-screen * {
+    cursor: none !important;
+  }
+}
+
 /* Touch-friendly scrolling for widget containers on the live screen.
  * - touch-action: pan-y → permits vertical finger pan, blocks zoom/pinch
  * - overscroll-behavior: contain → keeps the scroll inside the widget
