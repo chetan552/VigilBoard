@@ -12,7 +12,6 @@ export function ScreenWakeLock() {
 
     async function acquire() {
       try {
-        // @ts-expect-error — wakeLock typings still partial in some setups
         lock = await navigator.wakeLock.request("screen");
       } catch (err) {
         console.warn("[ScreenWakeLock] could not acquire:", err);
