@@ -6,6 +6,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { TasksAutoSync } from "@/components/TasksAutoSync";
 import { HomeworkAutoSync } from "@/components/HomeworkAutoSync";
 import { ScreenWakeLock } from "@/components/ScreenWakeLock";
+import { LastSyncedIndicator } from "@/components/LastSyncedIndicator";
 import { getPrefs } from "@/lib/prefs";
 
 type Props = { params: Promise<{ id: string }> };
@@ -26,6 +27,7 @@ export default async function LiveScreen(props: Props) {
       <TasksAutoSync />
       <HomeworkAutoSync />
       <ScreenWakeLock />
+      <LastSyncedIndicator renderedAt={Date.now()} />
       {screen.widgets.length === 0 ? (
         <div className="flex flex-col h-full items-center justify-center text-center gap-6">
           <div className="glass rounded-3xl p-12 flex flex-col items-center justify-center gap-6">
