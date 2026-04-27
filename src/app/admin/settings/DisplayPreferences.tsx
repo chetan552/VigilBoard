@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Palette, Thermometer, Clock, RefreshCw, Moon } from "lucide-react";
+import { Check, Palette, Thermometer, Clock, RefreshCw, Moon, MoonStar } from "lucide-react";
 
 export type DisplayPrefs = {
   accentColor: string;
@@ -9,7 +9,18 @@ export type DisplayPrefs = {
   tempUnit: "fahrenheit" | "celsius";
   timeFormat: "12h" | "24h";
   refreshInterval: number;
+  nightDimEnabled: boolean;
+  nightDimStart: number;
+  nightDimEnd: number;
+  nightDimLevel: number;
+  nightDimWarmth: number;
 };
+
+function formatHour(h: number): string {
+  if (h === 0) return "12 AM";
+  if (h === 12) return "12 PM";
+  return h < 12 ? `${h} AM` : `${h - 12} PM`;
+}
 
 const ACCENT_COLORS = [
   { label: "Teal",   value: "#00d4aa" },
@@ -199,6 +210,99 @@ export function DisplayPreferences({ initial, saveAction }: Props) {
             </button>
           ))}
         </div>
+      </section>
+
+      {/* Night Dim */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <MoonStar size={16} className="text-[var(--accent-teal)]" />
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Night Dim</h3>
+        </div>
+
+        <label className="flex items-center gap-3 px-4 py-3 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={prefs.nightDimEnabled}
+            onChange={(e) => update({ nightDimEnabled: e.target.checked })}
+            className="w-4 h-4 accent-[var(--accent-teal)]"
+          />
+          <span className="text-sm">Automatically dim the screen at night</span>
+        </label>
+
+        {prefs.nightDimEnabled && (
+          <div className="flex flex-col gap-4 p-4 bg-[var(--surface-hover)] rounded-xl border border-[var(--border-color)]">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Start</label>
+                <select
+                  className="input"
+                  value={prefs.nightDimStart}
+                  onChange={(e) => update({ nightDimStart: parseInt(e.target.value) })}
+                >
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <option key={h} value={h}>{formatHour(h)}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">End</label>
+                <select
+                  className="input"
+                  value={prefs.nightDimEnd}
+                  onChange={(e) => update({ nightDimEnd: parseInt(e.target.value) })}
+                >
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <option key={h} value={h}>{formatHour(h)}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Dim Level</label>
+                <span className="text-xs font-mono text-[var(--text-tertiary)]">{Math.round(prefs.nightDimLevel * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0.1}
+                max={0.9}
+                step={0.05}
+                value={prefs.nightDimLevel}
+                onChange={(e) => update({ nightDimLevel: parseFloat(e.target.value) })}
+                className="w-full accent-[var(--accent-teal)]"
+              />
+              <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
+                <span>Subtle</span>
+                <span>Strong</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Warmth</label>
+                <span className="text-xs font-mono text-[var(--text-tertiary)]">{Math.round(prefs.nightDimWarmth * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={prefs.nightDimWarmth}
+                onChange={(e) => update({ nightDimWarmth: parseFloat(e.target.value) })}
+                className="w-full accent-[var(--accent-teal)]"
+              />
+              <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
+                <span>Cool</span>
+                <span>Warm (sunset glow)</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[var(--text-tertiary)] italic">
+              Dims from {formatHour(prefs.nightDimStart)} to {formatHour(prefs.nightDimEnd)} with a 30-minute crossfade at each end.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Save */}

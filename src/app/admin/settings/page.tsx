@@ -11,6 +11,11 @@ const DEFAULT_PREFS: DisplayPrefs = {
   tempUnit: "fahrenheit",
   timeFormat: "12h",
   refreshInterval: 60000,
+  nightDimEnabled: true,
+  nightDimStart: 21,
+  nightDimEnd: 6,
+  nightDimLevel: 0.6,
+  nightDimWarmth: 0.25,
 };
 
 async function loadPrefs(): Promise<DisplayPrefs> {
